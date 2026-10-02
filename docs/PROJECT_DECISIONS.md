@@ -1,0 +1,106 @@
+# RulePilot AI — Project Decisions & Architectural Records (ADR)
+
+This document tracks all foundational architectural, technical, and interface decisions agreed upon for RulePilot AI.
+
+---
+
+## ADR-001: Unified Monolith with Next.js App Router
+- **Status:** Accepted / Frozen
+- **Context:** A 36-hour hackathon requires minimal operational overhead and zero inter-service deployment complexity.
+- **Decision:** Build a single unified Next.js (TypeScript) project using the App Router. Deployable directly to Vercel with zero infrastructure cost.
+- **Consequences:** Backend API routes live under `app/api/`, shared libraries in `lib/`, and frontend pages in `app/`. No separate microservices or separate backend servers.
+
+---
+
+## ADR-002: AI Interprets Policy; Deterministic Code Executes Rules
+- **Status:** Accepted / Core Principle
+- **Context:** LLMs are prone to hallucinations, non-deterministic number comparisons, and fluctuating edge-case logic when directly evaluating monetary business compliance.
+- **Decision:**
+  1. **Google Gemini LLM** is strictly used to parse unstructured natural language policy documents into structured JSON (`PolicyRule[]`).
+  2. **Deterministic application code** (`lib/rules/engine.ts`) executes mathematical and logical operators (`>`, `<`, `>=`, `<=`, `==`, `!=`) against business case inputs (`ExpenseCase`).
+  3. **RAG & pgvector** retrieve grounded page-aware snippets (`Citation`) as audit evidence.
+- **Consequences:** Decisions are 100% reproducible, testable, explainable, and trustworthy for enterprise compliance audits.
+
+---
+
+## ADR-003: Frozen Shared Contracts (`types/contracts.ts`)
+- **Status:** Accepted / Frozen
+- **Context:** 4 developers are building asynchronously. Contract mismatches will break parallel development.
+- **Decision:** The interfaces in `types/contracts.ts` are frozen:
+  - `Citation { page: number; section?: string; text: string; }`
+  - `RuleOperator = ">" | "<" | ">=" | "<=" | "==" | "!="`
+  - `PolicyRule { id: string; name: string; field: string; operator: RuleOperator; value: string | number | boolean; action: string; citation: Citation; }`
+  - `WorkflowNodeType = "start" | "condition" | "action" | "approval" | "end"`
+  - `WorkflowNode { id: string; type: WorkflowNodeType; label: string; ruleId?: string; }`
+  - `WorkflowEdge { id: string; source: string; target: string; label?: string; }`
+  - `WorkflowDefinition { nodes: WorkflowNode[]; edges: WorkflowEdge[]; }`
+  - `ExpenseCase { employeeName: string; category: string; amount: number; receipt: boolean; managerApproval: boolean; financeApproval: boolean; internationalTravel: boolean; preApproval: boolean; expenseDate: string; submissionDate: string; }`
+  - `RuleViolation { ruleId: string; message: string; action: string; citation: Citation; }`
+  - `CaseStatus = "APPROVED" | "ACTION_REQUIRED" | "REJECTED"`
+  - `CaseResult { status: CaseStatus; violations: RuleViolation[]; }`
+- **Consequences:** All members develop against these exact interfaces. Any change requires explicit consensus and documentation in this file.
+
+---
+
+## ADR-004: Ground-Truth Hackathon Demo Rules & Fixtures
+- **Status:** Accepted / Frozen
+- **Context:** The live demo requires consistent, predictable execution against a sample Employee Travel & Expense Policy.
+- **Agreed Rules:**
+  1. `EXP-001`: Receipt required above PKR 5,000.
+  2. `EXP-002`: Manager approval required above PKR 50,000.
+  3. `EXP-003`: Finance approval required above PKR 100,000.
+  4. `EXP-004`: Hotel expenses cannot exceed PKR 25,000/night.
+  5. `EXP-005`: Expense claims must be submitted within 14 days.
+  6. `EXP-006`: International travel requires pre-approval.
+- **Executable rule semantics (partial engine today):**
+  - `EXP-001`–`EXP-003`: amount thresholds + boolean attachment flags (`receipt`, `managerApproval`, `financeApproval`).
+  - `EXP-006`: `internationalTravel == true` implies `preApproval` must be true.
+  - `EXP-004` / `EXP-005`: defined in mocks but **not executed** by the partial prototype in `lib/rules/engine.ts` until Member 2 completes them (see ADR-008 for hotel).
+- **Citation provenance:** Citations in `mocks/policy-rules.json` are **demo-policy references** (fake Employee Travel & Expense Policy pages/sections). They are internally consistent for the hackathon demo. They did **not** come from a real uploaded PDF. Never present them as live RAG evidence until Member 2 retrieves real chunks.
+- **Agreed Demo Test Cases:**
+  - **Case A (Approved):** PKR 4,500, category Meals, no receipt (under threshold), dates within 14 days. Passes implemented rules. (`mocks/approved-case.json`)
+  - **Case B (Manager Approval Required):** PKR 68,000, category **Client Entertainment** (not Hotel — see ADR-008), receipt yes, manager no. Violates `EXP-002` only. (`mocks/approval-required-case.json`)
+  - **Case C (Multiple Violations):** PKR 120,000, no receipt/manager/finance, expenseDate `2026-09-25` → submissionDate `2026-10-02` (within 14 days so EXP-005 does not fire when implemented). Violates `EXP-001`, `EXP-002`, `EXP-003`. (`mocks/multiple-violations.json`)
+
+---
+
+## ADR-008: Hotel Nightly Cap Requires Additive ExpenseCase Fields
+- **Status:** Accepted / Open for Member Consensus
+- **Context:** Demo rule `EXP-004` caps hotel at PKR 25,000 **per night**. Frozen `ExpenseCase` has only total `amount` — no `nights` or `nightlyRate`. A PKR 68,000 hotel claim cannot be evaluated correctly without assuming nights (forbidden).
+- **Decision:** Keep `types/contracts.ts` unchanged for setup. Use a **non-hotel** category on the approval-required fixture. Members 1–3 must agree on an **additive** hotel input (e.g. optional `hotelNights?: number`) documented here before the hotel hero demo. Never silently ignore the cap or assume one night.
+- **Consequences:** Partial engine skips `EXP-004` until the additive field is agreed and implemented by Member 2.
+
+---
+
+## ADR-009: API Scaffolds Return HTTP 501
+- **Status:** Accepted
+- **Context:** Fake success responses (mock storage URLs, fabricated chunk counts, partial rule evaluation that skipped hotel/deadline) are unsafe starting contracts.
+- **Decision:** All six `app/api/**` scaffolds return `{ success: false, code: "NOT_IMPLEMENTED" }` with HTTP **501**. Members implement real handlers in their branches. Parallel UI work uses `/mocks` and `lib/rules/engine.ts` directly.
+- **Consequences:** No endpoint pretends production behavior during foundation phase.
+
+---
+
+
+## ADR-005: Database Schema & Vector Search (Supabase + pgvector)
+- **Status:** Accepted
+- **Context:** Need storage for uploaded PDFs, page-aware text chunks, vector embeddings for citation search, structured rules, workflows, and evaluation histories.
+- **Decision:**
+  - Supabase PostgreSQL with `vector` extension (`vector(768)` for Gemini embeddings).
+  - Storage bucket: `policies`.
+  - Tables: `documents`, `document_chunks`, `policy_rules`, `workflows`, `cases`, `case_results`.
+  - Migration script: `supabase/migrations/20261002000000_initial_schema.sql`.
+  - Safe client fallback: `lib/supabase/client.ts` and `lib/supabase/server.ts` compile without throwing if environment variables are not yet populated.
+
+---
+
+## ADR-006: React Flow for Visual Workflow Graph
+- **Status:** Accepted
+- **Context:** Clear visual workflow is a primary differentiator and hackathon "wow" factor.
+- **Decision:** Use `@xyflow/react` (React Flow 12) for rendering the workflow nodes and edges derived from `WorkflowDefinition`.
+
+---
+
+## ADR-007: Optional Webhook Automation Fallback
+- **Status:** Accepted
+- **Context:** External automation (Make/Zapier) can experience network delays, quota limits, or configuration failures during live judging.
+- **Decision:** The core RulePilot AI pipeline MUST work completely standalone without external services. Webhook notifications are purely an optional bonus trigger (`lib/automation/webhook.ts`) that will never block or break the evaluation loop.

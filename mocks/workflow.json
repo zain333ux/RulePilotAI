@@ -1,0 +1,108 @@
+{
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Expense Submitted"
+    },
+    {
+      "id": "node-2",
+      "type": "condition",
+      "label": "Amount > PKR 5,000?",
+      "ruleId": "EXP-001"
+    },
+    {
+      "id": "node-3",
+      "type": "action",
+      "label": "Validate Itemized Receipt",
+      "ruleId": "EXP-001"
+    },
+    {
+      "id": "node-4",
+      "type": "condition",
+      "label": "Amount > PKR 50,000?",
+      "ruleId": "EXP-002"
+    },
+    {
+      "id": "node-5",
+      "type": "approval",
+      "label": "Department Manager Approval",
+      "ruleId": "EXP-002"
+    },
+    {
+      "id": "node-6",
+      "type": "condition",
+      "label": "Amount > PKR 100,000?",
+      "ruleId": "EXP-003"
+    },
+    {
+      "id": "node-7",
+      "type": "approval",
+      "label": "Finance Executive Approval",
+      "ruleId": "EXP-003"
+    },
+    {
+      "id": "node-8",
+      "type": "end",
+      "label": "Claim Processing Complete"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "edge-2",
+      "source": "node-2",
+      "target": "node-3",
+      "label": "Yes (> 5,000)"
+    },
+    {
+      "id": "edge-3",
+      "source": "node-2",
+      "target": "node-4",
+      "label": "No (<= 5,000)"
+    },
+    {
+      "id": "edge-4",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "edge-5",
+      "source": "node-4",
+      "target": "node-5",
+      "label": "Yes (> 50,000)"
+    },
+    {
+      "id": "edge-6",
+      "source": "node-4",
+      "target": "node-6",
+      "label": "No (<= 50,000)"
+    },
+    {
+      "id": "edge-7",
+      "source": "node-5",
+      "target": "node-6"
+    },
+    {
+      "id": "edge-8",
+      "source": "node-6",
+      "target": "node-7",
+      "label": "Yes (> 100,000)"
+    },
+    {
+      "id": "edge-9",
+      "source": "node-6",
+      "target": "node-8",
+      "label": "No (<= 100,000)"
+    },
+    {
+      "id": "edge-10",
+      "source": "node-7",
+      "target": "node-8"
+    }
+  ]
+}

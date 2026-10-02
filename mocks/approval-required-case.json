@@ -1,0 +1,12 @@
+{
+  "employeeName": "Sarah Khan",
+  "category": "Client Entertainment",
+  "amount": 68000,
+  "receipt": true,
+  "managerApproval": false,
+  "financeApproval": false,
+  "internationalTravel": false,
+  "preApproval": false,
+  "expenseDate": "2026-09-28",
+  "submissionDate": "2026-10-02"
+}

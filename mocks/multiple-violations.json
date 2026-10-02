@@ -1,0 +1,12 @@
+{
+  "employeeName": "Zubair Tariq",
+  "category": "Conference & Travel",
+  "amount": 120000,
+  "receipt": false,
+  "managerApproval": false,
+  "financeApproval": false,
+  "internationalTravel": false,
+  "preApproval": false,
+  "expenseDate": "2026-09-25",
+  "submissionDate": "2026-10-02"
+}

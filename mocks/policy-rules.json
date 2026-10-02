@@ -1,0 +1,80 @@
+[
+  {
+    "id": "EXP-001",
+    "name": "Receipt Requirement Threshold",
+    "field": "amount",
+    "operator": ">",
+    "value": 5000,
+    "action": "require_receipt",
+    "citation": {
+      "page": 3,
+      "section": "2.1",
+      "text": "Itemized original receipts or tax invoices are strictly mandatory for any individual business expense exceeding PKR 5,000."
+    }
+  },
+  {
+    "id": "EXP-002",
+    "name": "Manager Approval Threshold",
+    "field": "amount",
+    "operator": ">",
+    "value": 50000,
+    "action": "require_manager_approval",
+    "citation": {
+      "page": 6,
+      "section": "4.2",
+      "text": "Any expense claim exceeding PKR 50,000 requires formal departmental manager review and written authorization."
+    }
+  },
+  {
+    "id": "EXP-003",
+    "name": "Finance Approval Threshold",
+    "field": "amount",
+    "operator": ">",
+    "value": 100000,
+    "action": "require_finance_approval",
+    "citation": {
+      "page": 7,
+      "section": "4.5",
+      "text": "Disbursements exceeding PKR 100,000 require secondary executive review and sign-off by the Finance Department."
+    }
+  },
+  {
+    "id": "EXP-004",
+    "name": "Hotel Daily Expense Cap",
+    "field": "amount",
+    "operator": ">",
+    "value": 25000,
+    "action": "flag_hotel_rate_limit",
+    "citation": {
+      "page": 4,
+      "section": "3.1",
+      "text": "Standard hotel accommodation for business travel must not exceed the maximum daily rate cap of PKR 25,000 per night."
+    }
+  },
+  {
+    "id": "EXP-005",
+    "name": "Submission Timeliness Window",
+    "field": "submissionWindowDays",
+    "operator": ">",
+    "value": 14,
+    "action": "reject_late_submission",
+    "citation": {
+      "page": 2,
+      "section": "1.4",
+      "text": "All employee reimbursement requests must be submitted within 14 calendar days of incurring the business expense."
+    }
+  },
+  {
+    "id": "EXP-006",
+    "name": "International Travel Pre-Approval",
+    "field": "internationalTravel",
+    "operator": "==",
+    "value": true,
+    "action": "require_international_pre_approval",
+    "citation": {
+      "page": 5,
+      "section": "3.8",
+      "text": "International travel expenses require documented vice-presidential pre-approval prior to ticket booking or travel confirmation."
+    }
+  }
+]

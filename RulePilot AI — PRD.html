@@ -1,0 +1,561 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}</style><style>:root{color-scheme:light dark;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}}:root[data-theme="dark"]{color-scheme:dark;--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}:root[data-theme="light"]{color-scheme:light}@media print{:root,:root[data-theme="dark"]{color-scheme:light;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}}body{background:var(--md-bg);color:var(--md-text);max-width:720px;margin:0 auto;padding:32px;display:flex;flex-direction:column;gap:10px;font:14px/1.55 -apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',sans-serif;overflow-wrap:break-word}body>:first-child{margin-top:0}h1,h2,h3,h4,h5,h6{margin:6px 0 0;line-height:1.25;font-weight:600;text-wrap:balance}h1{font-size:1.35em}h2{font-size:1.15em;color:var(--md-muted)}h3,h4,h5,h6{font-size:1em}p,ul,ol,blockquote,table,pre,hr{margin:0}strong{font-weight:600}a{color:var(--md-link);text-decoration:none}a:hover{text-decoration:underline}ul,ol{display:flex;flex-direction:column;gap:6px;padding-left:22px}ul{list-style:disc}ol{list-style:decimal}:is(li,td,th)>*+:is(p,ul,ol,blockquote){margin-top:6px}blockquote{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--md-rule);padding-left:10px;color:var(--md-muted)}:not(pre)>code{background:var(--md-fill);padding:1px 3px;border-radius:4px;font:.92em 'SF Mono',ui-monospace,Menlo,Consolas,monospace}a>code{background:none;color:inherit}pre{background:var(--md-fill);padding:10px 12px;border-radius:6px;overflow-x:auto;font:12px/1.5 'SF Mono',ui-monospace,Menlo,Consolas,monospace;margin-block:4px}pre code{background:none;padding:0;font:inherit}table{width:100%;border-collapse:separate;border-spacing:2px;font:inherit}th,td{padding:6px 8px;border-radius:3px;text-align:left;vertical-align:top}th{background:var(--md-fill-strong);font-weight:600}td{background:var(--md-fill)}:is(th,td) :not(pre)>code{background:transparent}hr{border:0;border-top:1px solid var(--md-rule-strong);margin-block:10px}img{max-width:100%;height:auto;border-radius:4px}</style>
+</head><body>
+<h1>RulePilot AI — Product Requirements Document</h1>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Product</strong></td>
+<td>RulePilot AI</td>
+</tr>
+<tr>
+<td><strong>Category</strong></td>
+<td>Agentic AI · Generative AI · Business Process Automation</td>
+</tr>
+<tr>
+<td><strong>Context</strong></td>
+<td>36-hour hackathon, fully functional MVP</td>
+</tr>
+<tr>
+<td><strong>Version</strong></td>
+<td>1.0</td>
+</tr>
+<tr>
+<td><strong>Tagline</strong></td>
+<td><em>Companies already have rules. RulePilot makes those rules executable.</em></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>1. Executive Summary</h2>
+<p>RulePilot AI turns static company policies and SOPs into executable workflows. A user uploads a policy PDF; RulePilot extracts business rules as structured JSON, generates a visual workflow, checks real business requests against those rules, returns a decision with an exact policy citation, and produces the next required action (for example, an approval request).</p>
+<p><strong>Core principle:</strong> the LLM <em>interprets</em> policy; a deterministic rule engine <em>decides</em>.</p>
+<hr>
+<h2>2. Problem</h2>
+<p>Organizations hold HR, expense, leave, procurement, travel and compliance documents that describe a process but do not run it. Employees must manually work out which policy applies, what conditions to check, which documents are missing, who must approve, and what happens next.</p>
+<p><strong>Impact:</strong> slow decisions, inconsistent enforcement, missed approvals, compliance errors, and dependence on experienced staff.</p>
+<hr>
+<h2>3. Goals and Non-Goals</h2>
+<p><strong>Goals</strong></p>
+<ul>
+<li>Convert a policy PDF into structured, machine-readable rules.</li>
+<li>Generate a visual workflow from those rules.</li>
+<li>Evaluate a business case deterministically and explain the result.</li>
+<li>Show clickable citations (document, section, page) for every decision.</li>
+<li>Generate the next action and show the agent pipeline running.</li>
+<li>Deploy on Vercel at zero infrastructure cost.</li>
+</ul>
+<p><strong>Non-goals (hackathon)</strong>
+Enterprise SSO, complex permissions, custom OCR, fine-tuning, microservices/Kubernetes, mobile apps, payments, production-scale security, drag-and-drop workflow editor.</p>
+<hr>
+<h2>4. Target Users</h2>
+<ul>
+<li><strong>MVP:</strong> HR, finance, operations, procurement and compliance teams; SMEs and enterprises.</li>
+<li><strong>Future:</strong> healthcare, universities, banks, logistics, government, insurance.</li>
+</ul>
+<hr>
+<h2>5. MVP Use Case: Employee Expense Reimbursement</h2>
+<p><strong>Sample policy rules</strong></p>
+<ul>
+<li>Receipt required above PKR 5,000.</li>
+<li>Manager approval required above PKR 50,000.</li>
+<li>Finance approval required above PKR 100,000.</li>
+<li>Hotel limit PKR 25,000 per night.</li>
+<li>Claims must be submitted within 14 days.</li>
+<li>International travel requires pre-approval.</li>
+</ul>
+<p><strong>Example</strong></p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hotel, PKR 68,000, receipt: yes, manager approval: no</td>
+<td><strong>Status:</strong> Manager Approval Required<br><strong>Reason:</strong> Amount exceeds PKR 50,000<br><strong>Evidence:</strong> Travel Expense Policy, Section 4.2, Page 6<br><strong>Next action:</strong> Generate manager approval request</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>6. Functional Requirements</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Requirement</th>
+<th>Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-1</td>
+<td><strong>Policy upload.</strong> PDF upload (type and size validated), stored in Supabase Storage.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>FR-2</td>
+<td><strong>Text extraction.</strong> Page-aware extraction via <code>pdfjs-dist</code> or <code>unpdf</code>, keeping document name, page, section (if detectable) and chunk content.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>FR-3</td>
+<td><strong>Rule extraction.</strong> Gemini converts policy text into structured JSON rules (see §8).</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>FR-4</td>
+<td><strong>Workflow generation.</strong> Rules become React Flow nodes and edges: start, decision, condition, action, approval, completion.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>FR-5</td>
+<td><strong>Policy RAG.</strong> Chunk, embed, store in pgvector, retrieve evidence. Each chunk carries <code>document_id</code>, <code>page_number</code>, <code>section</code>, <code>content</code>. Policy evidence takes priority over the LLM's general knowledge.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>FR-6</td>
+<td><strong>Case form.</strong> Employee name, category, amount, receipt, manager approval, finance approval, date incurred, date submitted, international travel, pre-approval. Manually built for MVP.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>FR-7</td>
+<td><strong>Deterministic rule engine.</strong> Application code executes structured rules; supports multiple simultaneous violations.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>FR-8</td>
+<td><strong>Evidence and citations.</strong> Every decision shows reason, source, section and page; clicking a citation opens the policy text.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>FR-9</td>
+<td><strong>Agent timeline.</strong> Live status per agent: waiting, processing, completed, failed.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>FR-10</td>
+<td><strong>Action generation.</strong> Approval requests and missing-document requests; copy/download.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>FR-11</td>
+<td><strong>Webhook automation.</strong> Webhook to Make to email a manager. Core flow must work if it fails.</td>
+<td>Nice</td>
+</tr>
+<tr>
+<td>FR-12</td>
+<td><strong>Extras.</strong> Auth (Supabase), DOCX, OCR, multi-policy, workflow editing/versioning, audit report, analytics, dynamic forms.</td>
+<td>Nice</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>7. Agent Architecture</h2>
+<table>
+<thead>
+<tr>
+<th>Agent</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Document Parser</strong></td>
+<td>Extract text, preserve page references, detect sections, prepare chunks.</td>
+</tr>
+<tr>
+<td><strong>Policy Extraction</strong></td>
+<td>Identify rules, conditions, thresholds, required documents, approvals and actions; return JSON.</td>
+</tr>
+<tr>
+<td><strong>Evidence</strong></td>
+<td>Semantic search over chunks; return exact supporting text with citations.</td>
+</tr>
+<tr>
+<td><strong>Workflow</strong></td>
+<td>Turn rules into nodes and edges.</td>
+</tr>
+<tr>
+<td><strong>Decision Engine</strong></td>
+<td>Execute rules deterministically; flag compliant or non-compliant and list missing requirements.</td>
+</tr>
+<tr>
+<td><strong>Action</strong></td>
+<td>Choose the next action; draft approvals, document requests, notifications.</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-text">PDF → Parse → Chunk → Embed → pgvector
+                         ↓
+         Policy Extraction → Structured Rules → Workflow
+                                   ↓
+   Case → Rule Engine → Decision + Evidence → Action → (Webhook)
+</code></pre>
+<p><strong>Why deterministic:</strong> predictable behavior, less hallucination, easier testing, transparent decisions.</p>
+<hr>
+<h2>8. Rule Schema</h2>
+<pre><code class="language-json">{
+  &#34;rule_id&#34;: &#34;EXP-001&#34;,
+  &#34;name&#34;: &#34;Manager Approval Threshold&#34;,
+  &#34;field&#34;: &#34;expense_amount&#34;,
+  &#34;operator&#34;: &#34;&gt;&#34;,
+  &#34;value&#34;: 50000,
+  &#34;action&#34;: &#34;require_manager_approval&#34;,
+  &#34;citation&#34;: { &#34;page&#34;: 6, &#34;section&#34;: &#34;4.2&#34; }
+}
+</code></pre>
+<hr>
+<h2>9. Technology Stack</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Choice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frontend and backend</td>
+<td>Next.js (API routes / server actions), one repo, one deployment</td>
+</tr>
+<tr>
+<td>UI</td>
+<td>React, Tailwind CSS, shadcn/ui, Lucide</td>
+</tr>
+<tr>
+<td>Workflow view</td>
+<td>React Flow</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>Google Gemini (fast, free-tier model); key stays server-side</td>
+</tr>
+<tr>
+<td>Embeddings</td>
+<td>Google embedding API or another free model</td>
+</tr>
+<tr>
+<td>Database and vectors</td>
+<td>Supabase PostgreSQL + pgvector</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>Supabase Storage</td>
+</tr>
+<tr>
+<td>Hosting</td>
+<td>Vercel Hobby</td>
+</tr>
+<tr>
+<td>Automation (optional)</td>
+<td>Make / Zapier webhook</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Cost target: $0</strong> within free-tier quotas.</p>
+<p><strong>Environment variables:</strong> <code>GEMINI_API_KEY</code>, <code>NEXT_PUBLIC_SUPABASE_URL</code>, <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>, <code>SUPABASE_SERVICE_ROLE_KEY</code>, <code>MAKE_WEBHOOK_URL</code>. Keep in <code>.env.local</code> and Vercel settings; never commit.</p>
+<hr>
+<h2>10. Data Model</h2>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Key fields</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>documents</code></td>
+<td>id, name, file_url, status, created_at</td>
+</tr>
+<tr>
+<td><code>document_chunks</code></td>
+<td>id, document_id, page_number, section, content, embedding</td>
+</tr>
+<tr>
+<td><code>policy_rules</code></td>
+<td>id, document_id, rule_code, rule_name, field_name, operator, value, action, citation_page, citation_section, raw_rule_text</td>
+</tr>
+<tr>
+<td><code>workflows</code></td>
+<td>id, document_id, name, workflow_json, created_at</td>
+</tr>
+<tr>
+<td><code>cases</code></td>
+<td>id, workflow_id, input_json, status, created_at</td>
+</tr>
+<tr>
+<td><code>case_results</code></td>
+<td>id, case_id, decision, reason, evidence_json, action, created_at</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>11. API Routes</h2>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST /api/documents/upload</code></td>
+<td>Upload and store PDF, start extraction</td>
+</tr>
+<tr>
+<td><code>POST /api/documents/process</code></td>
+<td>Extract text, chunk, embed, save</td>
+</tr>
+<tr>
+<td><code>POST /api/rules/extract</code></td>
+<td>Gemini rule extraction, store rules</td>
+</tr>
+<tr>
+<td><code>POST /api/workflows/generate</code></td>
+<td>Rules to React Flow JSON</td>
+</tr>
+<tr>
+<td><code>POST /api/cases/execute</code></td>
+<td>Run rule engine, retrieve evidence, return decision</td>
+</tr>
+<tr>
+<td><code>POST /api/actions/generate</code></td>
+<td>Draft action, optionally fire webhook</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>12. User Flow and Screens</h2>
+<p><strong>Flow:</strong> upload policy → processing summary (&quot;6 pages processed, 14 rules detected, workflow generated&quot;) → view workflow → run new case → agent timeline runs → decision with citation → generate approval request → (optional) webhook.</p>
+<table>
+<thead>
+<tr>
+<th>Screen</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Dashboard</strong></td>
+<td>Policies, workflow count, case count, recent activity</td>
+</tr>
+<tr>
+<td><strong>Upload Policy</strong></td>
+<td>Drag-and-drop, progress, agent status</td>
+</tr>
+<tr>
+<td><strong>Policy Intelligence</strong></td>
+<td>Document, extracted rules, sections, citations</td>
+</tr>
+<tr>
+<td><strong>Workflow Builder</strong></td>
+<td>React Flow workflow</td>
+</tr>
+<tr>
+<td><strong>Execute Case</strong></td>
+<td>Form, agent timeline, decision, evidence, generated action</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Design direction:</strong> serious B2B SaaS. Clean, minimal, neutral palette, cards, subtle animation, clear status indicators. Built around policies, workflows, decisions, agents and evidence, <strong>not</strong> a chat box.</p>
+<hr>
+<h2>13. Non-Functional Requirements</h2>
+<ul>
+<li><strong>Performance:</strong> policy analysis about 10–30 s for small documents; case execution within a few seconds.</li>
+<li><strong>Reliability:</strong> demo must run on predefined data. Keep backups of extracted rules, workflow, demo PDF and sample requests.</li>
+<li><strong>Explainability:</strong> every decision answers what happened, why, which rule, where it is written, and what happens next.</li>
+<li><strong>Security:</strong> server-side keys, sample data only, file type and size limits, sanitized extracted text, no real confidential data.</li>
+<li><strong>Auth:</strong> optional (Supabase Auth); never ahead of the core flow.</li>
+</ul>
+<hr>
+<h2>14. Demo Dataset and Test Cases</h2>
+<p><strong>Policy:</strong> <em>RulePilot Demo Company — Employee Travel &amp; Expense Policy</em>, 5–7 pages, containing the rules in §5.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Input</th>
+<th>Expected result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>PKR 4,500, no receipt</td>
+<td><strong>Approved</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>PKR 68,000, receipt yes, manager approval no</td>
+<td><strong>Manager Approval Required</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>PKR 120,000, no receipt, no manager approval, no finance approval</td>
+<td><strong>Multiple violations:</strong> receipt required, manager approval required, finance approval required</td>
+</tr>
+</tbody>
+</table>
+<p><strong>30-second hero demo:</strong> upload PDF → rules and workflow appear → enter the PKR 68,000 hotel case → agents run → &quot;MANAGER APPROVAL REQUIRED&quot; with Section 4.2, Page 6 → generate approval request.</p>
+<hr>
+<h2>15. Development Plan (36 Hours)</h2>
+<table>
+<thead>
+<tr>
+<th>Hours</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0–3</td>
+<td>Next.js, GitHub, Vercel, Supabase, UI shell</td>
+</tr>
+<tr>
+<td>3–6</td>
+<td>PDF upload, storage, page-aware extraction</td>
+</tr>
+<tr>
+<td>6–9</td>
+<td>Chunking, Gemini embeddings, pgvector, basic RAG</td>
+</tr>
+<tr>
+<td>9–12</td>
+<td>Policy extraction agent, rule JSON, DB storage</td>
+</tr>
+<tr>
+<td>12–15</td>
+<td>Workflow JSON, React Flow</td>
+</tr>
+<tr>
+<td>15–18</td>
+<td>Case form, rule engine, decisions</td>
+</tr>
+<tr>
+<td>18–21</td>
+<td>Evidence retrieval, citations UI</td>
+</tr>
+<tr>
+<td>21–24</td>
+<td>Action agent, agent timeline, end-to-end flow (<strong>core complete</strong>)</td>
+</tr>
+<tr>
+<td>24–28</td>
+<td>UI polish, loading states, dashboard</td>
+</tr>
+<tr>
+<td>28–31</td>
+<td>Optional: Make webhook, email automation</td>
+</tr>
+<tr>
+<td>31–33</td>
+<td>Test all demo paths, error handling, backup data</td>
+</tr>
+<tr>
+<td>33–35</td>
+<td>Pitch, architecture diagram, rehearsal</td>
+</tr>
+<tr>
+<td>35–36</td>
+<td>Feature freeze, critical fixes only</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>16. Team Roles (4 members)</h2>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Developer 1</td>
+<td>Next.js, backend APIs, Supabase, database, deployment</td>
+</tr>
+<tr>
+<td>Developer 2</td>
+<td>Gemini, RAG, embeddings, rule engine, agent orchestration</td>
+</tr>
+<tr>
+<td>Member 3</td>
+<td>UI, React Flow, dashboard, styling, agent timeline</td>
+</tr>
+<tr>
+<td>Member 4</td>
+<td>Policy document, test scenarios, QA, pitch deck, demo prep</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>17. Risks and Mitigations</h2>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LLM extracts wrong or incomplete rules</td>
+<td>Validate JSON schema; keep pre-verified sample rules as fallback</td>
+</tr>
+<tr>
+<td>PDF sections not detected reliably</td>
+<td>Fall back to page-level citations; use a clean demo PDF</td>
+</tr>
+<tr>
+<td>Gemini or embedding free-tier limits</td>
+<td>Cache results; precompute demo embeddings</td>
+</tr>
+<tr>
+<td>Webhook or Make failure</td>
+<td>Treat integration as optional; core flow independent</td>
+</tr>
+<tr>
+<td>Time overrun</td>
+<td>Hard feature freeze at hour 35; nice-to-haves only after hour 24</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>18. Differentiator</h2>
+<p>Most document AI: <em>Document → Question → Answer.</em></p>
+<p>RulePilot: <em>Document → Rules → Structured Logic → Workflow → Execution → Evidence → Decision → Action.</em></p>
+<p>It is agentic because each component's output determines the next step, combining generative AI, RAG, multi-agent orchestration and business process automation.</p>
+<hr>
+<h2>19. Success Criteria</h2>
+<ol>
+<li>A user uploads a policy PDF.</li>
+<li>Meaningful rules are extracted as structured JSON.</li>
+<li>A workflow is generated and displayed visually.</li>
+<li>A business request is submitted and checked against the rules.</li>
+<li>The decision is correct, with page and section citations.</li>
+<li>The required next action is generated.</li>
+<li>The system is deployed and accessible on Vercel.</li>
+</ol>
+<hr>
+<h2>20. Future Roadmap</h2>
+<ul>
+<li><strong>HR:</strong> leave, hiring, promotion, remote work</li>
+<li><strong>Finance:</strong> expense, invoice, budget approval</li>
+<li><strong>Procurement:</strong> vendor approval, purchase requests, tender review</li>
+<li><strong>Compliance:</strong> internal compliance, audit rules, risk checks</li>
+<li><strong>IT:</strong> access requests, security policies, incident procedures</li>
+</ul>
+<p>Long term: organizations upload their whole policy library and RulePilot becomes the operational AI layer over it.</p>
+
+</body></html>

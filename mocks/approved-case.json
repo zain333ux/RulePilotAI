@@ -1,0 +1,12 @@
+{
+  "employeeName": "Bilal Ahmed",
+  "category": "Meals & Subsistence",
+  "amount": 4500,
+  "receipt": false,
+  "managerApproval": false,
+  "financeApproval": false,
+  "internationalTravel": false,
+  "preApproval": false,
+  "expenseDate": "2026-10-01",
+  "submissionDate": "2026-10-02"
+}

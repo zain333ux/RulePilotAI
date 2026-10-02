@@ -41,7 +41,7 @@
   {
     "id": "EXP-004",
     "name": "Hotel Daily Expense Cap",
-    "field": "amount",
+    "field": "hotelNightlyRate",
     "operator": ">",
     "value": 25000,
     "action": "flag_hotel_rate_limit",

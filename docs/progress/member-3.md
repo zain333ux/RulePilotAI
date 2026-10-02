@@ -75,6 +75,7 @@ Build the primary application UI flows using mock fixtures from `/mocks`:
 # Important Decisions
 - Focus on serious B2B SaaS presentation (cards, badges, clean data tables, grounded evidence) rather than a chat interface.
 - Keep UI components decoupled so swapping mock data calls for real API calls requires zero UI refactoring.
+- **ADR-008 frozen:** optional form fields `hotelNightlyRate` and `hotelNights` for hotel/lodging claims. Do not invent alternate hotel field names. Non-hotel cases leave them undefined.
 
 ---
 

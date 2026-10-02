@@ -37,8 +37,10 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
     >
       <h3 className="text-base font-semibold text-white">Expense Claim Input</h3>
       <p className="text-xs text-amber-400/90">
-        Sample fixture defaults — evaluation wiring owned by Member 3 + Member 2. Hotel nightly
-        cap (EXP-004) needs an additive field agreement before hotel demos.
+        Sample fixture defaults — evaluation wiring owned by Member 3 + Member 2. Hotel inputs
+        (ADR-008): optional <code className="text-zinc-300">hotelNightlyRate</code> /{" "}
+        <code className="text-zinc-300">hotelNights</code>; rule is{" "}
+        <code className="text-zinc-300">hotelNightlyRate &gt; 25000</code>.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

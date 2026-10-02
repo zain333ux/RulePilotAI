@@ -70,6 +70,14 @@ export interface ExpenseCase {
 
   expenseDate: string;
   submissionDate: string;
+
+  /**
+   * Optional hotel inputs for EXP-004 (ADR-008).
+   * When present, evaluate: hotelNightlyRate > 25000.
+   * Do not derive rate from amount/nights. Do not assume 1 night.
+   */
+  hotelNightlyRate?: number;
+  hotelNights?: number;
 }
 
 export interface RuleViolation {

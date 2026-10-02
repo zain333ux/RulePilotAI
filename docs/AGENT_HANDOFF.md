@@ -13,9 +13,9 @@
 - **Current Branch:** `main` (create feature branches from main after pull)
 - **Current Working Architecture:**
   - Next.js 16 App Router + TypeScript + Tailwind CSS v4 + React 19 at repo root
-  - Frozen contracts in `types/contracts.ts` (unchanged)
-  - Realistic fixtures in `mocks/` (approval case = Client Entertainment, not Hotel)
-  - Partial deterministic engine in `lib/rules/engine.ts` (EXP-001/002/003/006 only)
+  - Frozen contracts in `types/contracts.ts` (includes optional `hotelNightlyRate` / `hotelNights` per ADR-008)
+  - Realistic fixtures in `mocks/` (Cases A–C omit hotel fields; EXP-004 field = `hotelNightlyRate`)
+  - Partial deterministic engine in `lib/rules/engine.ts` (EXP-001/002/003/006 only; EXP-004/005 next for Member 2)
   - React Flow starter in `components/workflow/WorkflowGraph.tsx`
   - Supabase schema + pgvector in `supabase/migrations/20261002000000_initial_schema.sql`
   - All six API routes return **HTTP 501 NOT_IMPLEMENTED** (safe scaffolds)
@@ -32,17 +32,17 @@
   - [x] Full docs suite + progress handoff system
 - **Current Unfinished Work (Members):**
   - Member 1: Real PDF upload → Storage `policies` → `documents` row
-  - Member 2: Gemini extract, RAG, complete EXP-004/005 after hotel field agreement, wire `/api/cases/execute`
-  - Member 3: Product UI against mocks, then APIs when ready
+  - Member 2: Gemini extract, RAG, implement EXP-004 (`hotelNightlyRate > 25000`) + EXP-005, wire `/api/cases/execute`
+  - Member 3: Product UI against mocks; optional hotel form fields per ADR-008
   - Member 4: Full React Flow custom nodes + timeline + optional webhook
 - **Known Blockers:**
-  - **ADR-008:** Hotel nightly cap needs additive ExpenseCase fields before EXP-004 demo
+  - None. ADR-008 hotel fields are agreed and frozen.
 - **Known Bugs:**
   - None in foundation validation at last pass
 - **Important Architectural Decisions:**
   - ADR-001 monolith · ADR-002 LLM interpret / code execute · ADR-003 frozen contracts
   - ADR-004 demo rules + citation provenance · ADR-005 Supabase/pgvector · ADR-006 React Flow
-  - ADR-007 optional webhook · ADR-008 hotel field · ADR-009 API 501 scaffolds
+  - ADR-007 optional webhook · ADR-008 hotel fields frozen · ADR-009 API 501 scaffolds
 - **Environment Variables Required (`.env.local`):**
   - Server-only: `GEMINI_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `MAKE_WEBHOOK_URL`
   - Public: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -80,3 +80,12 @@
   - Disabled false-active upload/evaluate controls; labeled sample dashboard data
   - Corrected Member 4 ownership (`mocks/` shared); foundation tests expect 501
   - Validated install/lint/typecheck/tests/build; committed and pushed to GitHub
+
+### Session 3 — ADR-008 Hotel Field Consensus
+- **Date:** 2026-10-02
+- **Agent:** Initial Setup Engineer
+- **Summary:**
+  - Froze additive ExpenseCase fields: `hotelNightlyRate?: number`, `hotelNights?: number`
+  - EXP-004 evaluation: `hotelNightlyRate > 25000` (do not derive from amount/nights)
+  - Updated `mocks/policy-rules.json` EXP-004 `field` → `hotelNightlyRate`
+  - Documented in ADR-003 / ADR-008; cleared hotel blocker in handoff

@@ -35,7 +35,8 @@ Connect Google Gemini API to parse sample expense policy text into a validated a
 
 # Completed
 - Frozen contracts defined in `types/contracts.ts` (`PolicyRule`, `RuleOperator`, `Citation`, `CaseResult`).
-- **Partial** deterministic rule evaluation engine in `lib/rules/engine.ts` (EXP-001/002/003/006 only; EXP-004 blocked on ADR-008 hotel fields; EXP-005 not yet coded).
+- **Partial** deterministic rule evaluation engine in `lib/rules/engine.ts` (EXP-001/002/003/006 only; EXP-004/005 not yet coded).
+- **ADR-008 frozen:** evaluate EXP-004 as `hotelNightlyRate > 25000` using optional `ExpenseCase.hotelNightlyRate` / `hotelNights`. Mock rule field is `hotelNightlyRate`.
 - Ground truth mock rules created in `mocks/policy-rules.json` (demo-policy citations — not live PDF RAG).
 - Ground truth test fixtures created; approval case uses **Client Entertainment** category.
 - Automated test suite in `tests/rules/engine.test.ts` running with `npm run test:rules`.

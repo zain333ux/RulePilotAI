@@ -10,9 +10,10 @@
  * - Implemented today: EXP-001, EXP-002, EXP-003, EXP-006
  * - NOT yet implemented: EXP-004 (hotel nightly cap), EXP-005 (14-day submission window)
  *
- * EXP-004 BLOCKER: ExpenseCase has no nights / nightlyRate field. Do not assume 1 night
- * or silently ignore the hotel cap. Members 1–3 must agree on an additive hotel input
- * before implementing EXP-004. See docs/PROJECT_DECISIONS.md ADR-008.
+ * EXP-004 (ADR-008 FROZEN): ExpenseCase.hotelNightlyRate?: number; hotelNights?: number.
+ * Evaluate: if hotelNightlyRate is defined and hotelNightlyRate > 25000 → violate.
+ * PolicyRule.field = "hotelNightlyRate". Never derive rate from amount/nights; never assume 1 night.
+ * When hotelNightlyRate is omitted, skip EXP-004.
  *
  * EXP-005: Member 2 should compute calendar-day delta from expenseDate → submissionDate
  * and compare against rule.value (14). Keep disconnected from API scaffolds until complete.

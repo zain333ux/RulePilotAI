@@ -2,37 +2,10 @@ import Link from "next/link";
 import { ArrowLeft, GitBranch } from "lucide-react";
 import mockWorkflow from "@/mocks/workflow.json";
 import { WorkflowGraph } from "@/components/workflow/WorkflowGraph";
-import { AgentTimeline } from "@/components/agents/AgentTimeline";
-import type { WorkflowDefinition, AgentStep } from "@/types/contracts";
+import { AgentTimelineDemo } from "@/components/agents/AgentTimelineDemo";
+import type { WorkflowDefinition } from "@/types/contracts";
 
 const workflow = mockWorkflow as WorkflowDefinition;
-
-const demoSteps: AgentStep[] = [
-  {
-    id: "demo-completed",
-    name: "Policy Extraction",
-    description: "Sample rules ready.",
-    status: "completed",
-  },
-  {
-    id: "demo-running",
-    name: "Rule Evaluation",
-    description: "Preview of an active processing step.",
-    status: "running",
-  },
-  {
-    id: "demo-waiting",
-    name: "Action Generation",
-    description: "Preview of a step waiting to start.",
-    status: "waiting",
-  },
-  {
-    id: "demo-failed",
-    name: "Optional Automation",
-    description: "Simulated webhook failure; core result remains available.",
-    status: "failed",
-  },
-];
 
 export default function WorkflowsPage() {
   return (
@@ -77,11 +50,8 @@ export default function WorkflowsPage() {
             <WorkflowGraph workflow={workflow} />
           </div>
 
-          <div className="mb-8 space-y-3">
-            <p className="text-xs text-amber-400">
-              Timeline state preview — mock data, not live execution.
-            </p>
-            <AgentTimeline steps={demoSteps} />
+          <div className="mb-8">
+            <AgentTimelineDemo />
           </div>
 
           <div className="border-t border-zinc-800/80 pt-4 text-xs text-zinc-500 flex items-center justify-between">

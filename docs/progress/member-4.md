@@ -167,3 +167,29 @@ Next implementation: AgentTimeline mock preview for all four states.
 ### Next Exact Step
 Confirm lint, then add a controlled mock timeline simulation
 with run, reset and simulated failure behavior.
+
+## Session Update — 2026-10-03 — Mock Timeline Simulation
+
+### Completed
+- Added AgentTimelineDemo with Run Demo, Reset and failure toggle.
+- Connected simulation to /workflows.
+- Browser confirmed successful run and simulated automation failure.
+- Timer cleanup and cancellation logic implemented.
+
+### Files Changed
+- components/agents/AgentTimelineDemo.tsx
+- app/workflows/page.tsx
+- docs/progress/member-4.md
+- docs/AGENT_HANDOFF.md
+
+### Validation
+- Production build and its TypeScript check passed.
+- Latest lint and test summary awaiting confirmation.
+- Reset during execution awaiting browser confirmation.
+
+### Limitations
+- Simulation only; no AI evaluation, generated draft or webhook dispatch.
+- Parent-directory lockfile warning remains non-blocking.
+
+### Next Exact Step
+Confirm lint/tests and Reset during execution, then commit and push.

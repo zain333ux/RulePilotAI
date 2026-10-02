@@ -88,3 +88,10 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Tests and production build passed.
 - No live processing or webhook dispatch added.
 - Next: lint verification, then controlled mock timeline simulation.
+
+### Member 4 Mock Simulation — 2026-10-03
+
+- Added controlled mock timeline with run/reset/failure controls.
+- Browser confirmed success and optional automation failure paths.
+- Production build passed; lint/tests and mid-run Reset verification pending.
+- No live processing or webhook requests added.

@@ -2,9 +2,11 @@
  * Embeddings Generator Starter
  * Owned by Member 2 (AI / RAG / Rule Engine).
  *
- * Generates 768-dimensional vector embeddings (Gemini text-embedding-004).
+ * Generates 768-dimensional vectors; Member 2 must select a supported model with this output size.
  * Never return silent zero-vectors that look like valid embeddings.
  */
+
+import "server-only";
 
 export class EmbeddingNotConfiguredError extends Error {
   constructor(message = "GEMINI_API_KEY is not configured. Cannot generate embeddings.") {
@@ -33,6 +35,6 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   }
 
   throw new EmbeddingNotImplementedError(
-    "Embedding generation not implemented. Member 2: connect Gemini text-embedding-004 and return number[768]."
+    "Embedding generation not implemented. Member 2: select a supported embedding model and explicitly request/verify 768 dimensions."
   );
 }

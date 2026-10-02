@@ -18,8 +18,8 @@
  * EXP-005: Member 2 should compute calendar-day delta from expenseDate → submissionDate
  * and compare against rule.value (14). Keep disconnected from API scaffolds until complete.
  *
- * API routes currently return HTTP 501. UI / tests should call this function directly
- * with fixtures from /mocks until Member 2 wires POST /api/cases/execute.
+ * API routes currently return HTTP 501. Tests exercise only this partial prototype.
+ * UI uses mocks/case-results.json until Member 1 integrates the completed evaluator.
  */
 import { ExpenseCase, PolicyRule, CaseResult, RuleViolation } from "@/types/contracts";
 

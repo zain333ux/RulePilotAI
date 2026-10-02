@@ -69,3 +69,19 @@ To enable four developers and their AI coding agents to work in parallel without
 - **`types/contracts.ts`** — frozen shared contracts. Changes require consensus + `docs/PROJECT_DECISIONS.md`.
 - **`mocks/`** — shared demo fixtures for parallel work. Coordinate before changing ground-truth demo cases.
 - **`docs/`** — handoff and architecture docs; update progress files in your own `docs/progress/member-X.md`.
+
+## Integration files and handoffs
+
+| Files | Owner / coordination |
+| --- | --- |
+| All app/api/, lib/api/, tests/foundation.test.ts | Member 1; imports domain functions from Members 2 and 4 |
+| app/page.tsx, app/layout.tsx, app/globals.css, lib/utils.ts, components.json, components/ui/ | Member 3; coordinate public component APIs with Member 4 |
+| app/workflows/, workflow renderer, agent timeline | Member 4; coordinate navigation with Member 3 |
+| package.json, package-lock.json, tsconfig.json, next.config.ts, ESLint, CI | Member 1 coordinates; install dependencies one change at a time |
+| types/contracts.ts, types/api.ts, mocks/ | Shared; document and agree changes before other branches depend on them |
+
+Member 2 hands Member 1 tested functions from lib/ai, lib/rag, lib/embeddings and lib/rules. Member 1 writes the route adapters. Member 4 consumes WorkflowDefinition and AgentStep via props; Member 3 imports those components without editing their internals.
+
+First checkpoints: M1 upload persistence, M2 sample text to rules, M3 mock screens, M4 mock graph. All can start without other members' completed modules. Live service tests still require the relevant credentials.
+
+Use separate clones/worktrees. Branch from dev once the integration lead has merged the reviewed setup into main and created dev. Submit feature/platform, feature/ai-engine, feature/frontend and feature/workflow to dev; integrate and test before main. Do not have four agents switch branches in one shared working directory.

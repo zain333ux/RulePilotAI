@@ -17,4 +17,8 @@ The API previously duplicated four rules and silently skipped the hotel cap and 
 
 **Resolution:** API skeletons return HTTP 501; mock fixtures remain directly available for independent UI work. AI stubs throw explicit errors. Partial engine preserved in `lib/rules/engine.ts` and disconnected from APIs.
 
-The supplied ExpenseCase has no nights or nightly-rate field. A PKR 68,000 hotel claim cannot be correctly evaluated against PKR 25,000/night. Keep the exact contract and use a non-hotel approval fixture (`Client Entertainment`). Members 1, 2 and 3 must agree on an additive hotel input before the hotel hero demo; never assume one night or silently ignore the cap. Documented as ADR-008.
+Historical finding (resolved in commit 88bdbd5): the original ExpenseCase had no nights or nightly-rate field. A PKR 68,000 hotel claim cannot be correctly evaluated against PKR 25,000/night. Keep the exact contract and use a non-hotel approval fixture (`Client Entertainment`). Members 1, 2 and 3 must agree on an additive hotel input before the hotel hero demo; never assume one night or silently ignore the cap. Documented as ADR-008.
+
+## Latest review
+
+ADR-008 is frozen; no hotel contract blocker remains. The readiness review adds typed HTTP envelopes, one route owner, parallel integration instructions, sample text/results, secret boundary imports and corrected member templates. See current handoff for validation.

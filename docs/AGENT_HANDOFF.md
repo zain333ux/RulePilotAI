@@ -1,64 +1,28 @@
-# RulePilot AI — AI Agent Master Handoff
+# RulePilot AI agent handoff
 
-> **ATTENTION CODING AGENTS:**  
-> This is the first file you must read after reading the PRD (`RulePilot AI — PRD.html`) and Team Implementation Playbook (`RulePilot_AI_Team_Implementation_Playbook.docx`).  
-> Before writing any code, consult `docs/DEVELOPMENT_RULES.md` and your assigned progress file in `docs/progress/member-X.md`.
+Read immediately after the PRD, then complete the playbook/development rules/member progress checklist before coding. Root AGENTS.md points here.
 
----
+## CURRENT STATE
 
-## 1. Current State (Latest Snapshot)
-
-- **Project Name:** RulePilot AI
-- **Current Phase:** Shared foundation review complete — ready for parallel development
-- **Current Branch:** `main` (create feature branches from main after pull)
-- **Current Working Architecture:**
-  - Next.js 16 App Router + TypeScript + Tailwind CSS v4 + React 19 at repo root
-  - Frozen contracts in `types/contracts.ts` (includes optional `hotelNightlyRate` / `hotelNights` per ADR-008)
-  - Realistic fixtures in `mocks/` (Cases A–C omit hotel fields; EXP-004 field = `hotelNightlyRate`)
-  - Partial deterministic engine in `lib/rules/engine.ts` (EXP-001/002/003/006 only; EXP-004/005 next for Member 2)
-  - React Flow starter in `components/workflow/WorkflowGraph.tsx`
-  - Supabase schema + pgvector in `supabase/migrations/20261002000000_initial_schema.sql`
-  - All six API routes return **HTTP 501 NOT_IMPLEMENTED** (safe scaffolds)
-  - AI/RAG/embedding stubs **throw** when called — no fabricated citations or zero-vector fakes
-- **Completed Features:**
-  - [x] Next.js foundation + Tailwind + shadcn-style `components.json` / button primitive
-  - [x] Frozen `types/contracts.ts` + documented ADRs
-  - [x] Mock rules, workflow, three expense fixtures
-  - [x] Partial rule engine + `npm run test:rules`
-  - [x] Workflow structure test + foundation 501 API tests
-  - [x] Migration with CHECK/UNIQUE constraints + setup comments
-  - [x] Env example + gitignore for secrets; server Supabase throws if unconfigured
-  - [x] Starter UI pages marked as sample/unavailable where APIs are unfinished
-  - [x] Full docs suite + progress handoff system
-- **Current Unfinished Work (Members):**
-  - Member 1: Real PDF upload → Storage `policies` → `documents` row
-  - Member 2: Gemini extract, RAG, implement EXP-004 (`hotelNightlyRate > 25000`) + EXP-005, wire `/api/cases/execute`
-  - Member 3: Product UI against mocks; optional hotel form fields per ADR-008
-  - Member 4: Full React Flow custom nodes + timeline + optional webhook
-- **Known Blockers:**
-  - None. ADR-008 hotel fields are agreed and frozen.
-- **Known Bugs:**
-  - None in foundation validation at last pass
-- **Important Architectural Decisions:**
-  - ADR-001 monolith · ADR-002 LLM interpret / code execute · ADR-003 frozen contracts
-  - ADR-004 demo rules + citation provenance · ADR-005 Supabase/pgvector · ADR-006 React Flow
-  - ADR-007 optional webhook · ADR-008 hotel fields frozen · ADR-009 API 501 scaffolds
-- **Environment Variables Required (`.env.local`):**
-  - Server-only: `GEMINI_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `MAKE_WEBHOOK_URL`
-  - Public: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- **Database Status:** Migration ready; not applied until team creates Supabase project
-- **API Status:** All six endpoints respond **501** with `code: "NOT_IMPLEMENTED"`
-- **Tests Status:**
-  - `npm run typecheck`: PASSED
-  - `npm run lint`: PASSED (0 errors; unused-arg warnings cleaned)
-  - `npm run test:rules`: PASSED (3/3)
-  - `npm run test:workflow`: PASSED
-  - `npm run test:foundation`: PASSED (6/6 HTTP 501 scaffolds)
-  - `npm run build`: PASSED
-- **Last Verified Working Command:** `npm run typecheck && npm run test && npm run build`
-- **Exact Recommended Next Task:** Members 1–4 pull `main`, create `feature/platform` | `feature/ai-engine` | `feature/frontend` | `feature/workflow`, start first milestones in `docs/progress/member-X.md`
-
----
+- Project: RulePilot AI.
+- Phase: shared foundation review complete; product features remain member milestones.
+- Current branch: setup/parallel-readiness; based on main commit 88bdbd5. Review branch is not merged into main. Confirm `git status -sb` when resuming.
+- Working architecture: one root Next.js 16.3.8 / React 19.2.8 / TypeScript / Tailwind v4 app, shadcn configuration, Supabase JS, React Flow, Lucide. SQL/AI integrations remain offline.
+- Completed: requested folder structure, frozen domain types including ADR-008 hotel fields, typed HTTP envelopes in types/api.ts, six rules and workflow/case fixtures, sample policy text, expected case results, route scaffolds, Supabase migration files, agent handoff and member starting instructions.
+- Unfinished: actual PDF upload/parsing, Gemini extraction, RAG/embeddings, persistence, complete deterministic engine, connected product UI, full workflow renderer, action generation and optional automation. Do not build unrelated features during setup.
+- Known blockers: no blocker to independent mock development. Live integration needs Supabase/Gemini credentials and migration execution. Shared review must be integrated before other clones receive these fixes.
+- Known limitations: engine implements EXP-001/002/003/006 only and ignores generic operators; EXP-004/005 and input validation remain Member 2 work. Use static expected result fixtures for mock UI. Workflow fixture covers three threshold branches. Existing webhook helper is disconnected and needs timeout/failure tests. Browser visual QA and live database validation have not been performed in this review.
+- Decisions: LLM interprets policy; deterministic code executes rules. Member 1 owns every route. Workflow/case IDs bind rules and decisions to their documents. Server-only secret modules; private policy storage and server-only DB access baseline. See ADR-010 through ADR-012.
+- Environment: no credentials needed for build/tests. Server-only GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY and optional MAKE_WEBHOOK_URL; public NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY. All .env* ignored except .env.example.
+- Database: six-table schema + vector(768) RPC prepared. New server-access migration enables RLS and restricts table/RPC access. Neither migration has been executed here; follow supabase/README.md. Embedding model must be selected and dimension verified by Member 2.
+- API: all six POST endpoints intentionally return 501 NOT_IMPLEMENTED. Target request/response/error shapes are in types/api.ts and docs/API_CONTRACTS.md; no processing occurs yet.
+- Contract status: types/contracts.ts unchanged by this review. Additive types/api.ts formalizes transport envelopes; changes recorded in ADR-010. Mock citations are authored fictional demo references, never live PDF evidence.
+- Packages: existing dependencies retained; added server-only (0.0.1) for framework-enforced import boundaries. package-lock.json updated.
+- Tests: npm test passes three existing engine fixtures, existing workflow structural check, six API scaffold tests and three new fixture integrity tests. A CRLF-sensitive citation test failed initially and was corrected to normalize line endings. These checks do not prove six-rule execution or browser interaction.
+- Validation: npm install server-only succeeded (0 audit vulnerabilities); lint/typecheck and production build passed. Initial install failed on sandbox network access and succeeded with permitted access. Production HTTP smoke checks passed: five page GETs returned 200 and all six API POSTs returned 501 with the expected error envelope. The first npm start invocation lost flags in PowerShell; direct Next CLI start succeeded.
+- Last verified working commands: npm run lint; npm run typecheck; npm test; npm run build; node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3100 (HTTP smoke checks passed).
+- Exact next task: integration lead merges/shares setup/parallel-readiness, then creates dev from accepted main. Members branch from dev in separate clones/worktrees and follow their first milestones.
+- Parallel readiness: yes for independent mock-based work after this baseline is shared; no claim that the live MVP is complete.
 
 ## 2. Chronological Session Log
 
@@ -89,3 +53,14 @@
   - EXP-004 evaluation: `hotelNightlyRate > 25000` (do not derive from amount/nights)
   - Updated `mocks/policy-rules.json` EXP-004 `field` → `hotelNightlyRate`
   - Documented in ADR-003 / ADR-008; cleared hotel blocker in handoff
+
+
+### Session 4: Parallel development readiness review (2026-10-02)
+
+- Reviewed completed main at 88bdbd5; preserved the agreed hotel fields and existing UI/prototype implementations.
+- Added root AGENTS.md; types/api.ts defines transport envelopes with workflowId/caseId and a standard error shape. Corrected all route ownership to Member 1.
+- Added authored sample policy text, expected case results and three integrity tests; fixed Windows CRLF handling in the quote test.
+- Added server-only 0.0.1 imports, broadened secret ignores, and an unapplied RLS/server-access migration with setup/mapping instructions.
+- Corrected stale hotel-blocker notes, member activity claims, model assumptions and branch workflow. Updated ADR-010/011/012 and shared setup progress.
+- Verified install (0 audit vulnerabilities), lint (no warnings), typecheck, all tests, production build and HTTP smoke checks. Git diff whitespace check passed; domain contracts unchanged. No visual browser QA, Gemini calls, webhook delivery or Supabase execution claimed.
+- Review is isolated on setup/parallel-readiness. No changes pushed or merged into main during this review; the integration lead must share the accepted baseline before teammates pull it.

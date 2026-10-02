@@ -1,259 +1,70 @@
-# RulePilot AI — API Contracts & Specifications
+# API contracts
 
-This document defines the formal request/response schemas, HTTP status codes, error shapes, and TypeScript interface mappings for all backend endpoints.
+All six routes currently return HTTP 501. No upload, persistence, AI processing or case execution occurs. The interfaces in `types/api.ts` are the agreed target HTTP envelopes; `types/contracts.ts` contains the frozen domain objects. This foundation correction is recorded in ADR-010.
 
----
+## Ownership and common behavior
 
-## Scaffold Status (Foundation Phase)
+Member 1 owns **every** `app/api/` handler and `lib/api/`. Member 2 implements AI, RAG and deterministic functions in owned libraries. Member 4 implements workflow rendering and automation. Contributors hand functions to Member 1 rather than independently editing the same routes.
 
-Until each owning member implements their endpoint, every route under `app/api/` returns:
-
-```http
-HTTP/1.1 501 Not Implemented
-```
+Requests and responses use JSON except PDF upload. Identifiers in live mode are database UUIDs. All errors use `ApiError`:
 
 ```json
-{
-  "success": false,
-  "code": "NOT_IMPLEMENTED",
-  "error": "POST /api/... is not implemented yet.",
-  "details": "Owned by Member X. Use fixtures in /mocks for parallel development until this endpoint is completed."
-}
+{"success":false,"code":"NOT_IMPLEMENTED","error":"POST /api/... is not implemented yet.","details":"Use fixtures while the route is unfinished."}
 ```
 
-Success shapes below are the **target contracts** members must implement. Do not ship fake successes.
+`details` is optional and must never contain credentials, stack traces or raw provider responses. All routes return 501 today, including for invalid input. Once implemented: 400 for malformed/invalid input, 404 for a missing referenced record, 409 for a prerequisite not ready, 415 for unsupported media, 422 for unsupported/unverifiable policy evaluation, 429 for provider quota, 502 for provider failure, 503 for missing configuration, 500 for unexpected failures. Each response uses the same error envelope; do not turn provider failures into approvals or fake evidence.
 
----
+## POST /api/documents/upload
 
-## Standard Error Response Format
-All endpoints return standard JSON errors on 4xx / 5xx codes:
-```json
-{
-  "success": false,
-  "error": "Short human-readable error summary",
-  "details": "Technical detail or validation error message"
-}
-```
+- Owner: Member 1. Request: `multipart/form-data`, exactly one nonempty PDF in `file`; validate MIME, PDF signature and size.
+- Initial limit: 4 MiB for uploads passing through the Next.js function. Larger files require a separately agreed direct-storage flow. Metadata-only JSON cannot report a successful upload.
+- Target 201: `UploadResponse` (`documentId`, `storagePath`, `document: PolicyDocument`, `success: true`). `document.id` equals `documentId`; status is `uploaded`; createdAt is an ISO timestamp. `fileUrl` is optional, using a temporary signed URL for private storage.
+- Errors: 400 missing/invalid file; 413 over size limit; 415 non-PDF; 503 unconfigured storage/database; 500 persistence failure. Remove a newly uploaded orphan if the document insert fails.
+- Do not automatically call processing. The caller explicitly invokes the next endpoint after upload succeeds.
 
-Optional foundation field: `code` (e.g. `"NOT_IMPLEMENTED"`).
+## POST /api/documents/process
 
----
+- Owner: Member 1 route; Member 2 parsing/chunk/embedding functions.
+- Request: `DocumentRequest`, `{ "documentId": "<uuid>" }`.
+- Target 200: `ProcessResponse`, `{ "success": true, "documentId": "<uuid>", "status": "processed", "pageCount": 7, "chunkCount": 7 }`. Counts are illustrative; return actual persisted counts.
+- Errors: 400 malformed ID; 404 missing document; 409 processing already running; 422 unreadable/scanned PDF without supported text; 429/502 provider failure; 503 configuration missing; 500 storage/database failure.
+- Page numbers are one-based PDF pages. Preserve section text when detectable. Do not infer page numbers from character offsets.
 
-## 1. POST `/api/documents/upload`
-Uploads a policy or SOP PDF document to Supabase Storage and creates an initial document record.
+## POST /api/rules/extract
 
-- **Owned by:** Member 1 (Platform / Backend)
-- **Content-Type:** `multipart/form-data` or `application/json` (metadata-only mode)
+- Owner: Member 1 route; Member 2 extraction function.
+- Request: `DocumentRequest`.
+- Target 200: `ExtractRulesResponse`, `{ "success": true, "documentId": "<uuid>", "rules": [] }`; rules is `PolicyRule[]` from the document's processed chunks.
+- Errors: 400 invalid ID; 404 missing document; 409 document not processed; 422 unsupported rule or missing source evidence; 429/502 provider failure; 503 configuration missing; 500 persistence failure.
+- Validate operators, supported fields/actions, thresholds and citation text against source chunks before accepting results. Empty rules must not be interpreted as automatic compliance.
 
-### Request Payload (Multipart)
-| Field | Type | Description |
-|---|---|---|
-| `file` | File (`application/pdf`) | Binary PDF file (max 20MB) |
+## POST /api/workflows/generate
 
-### Request Payload (JSON / Metadata mode)
-```json
-{
-  "filename": "Employee-Travel-Expense-Policy.pdf"
-}
-```
+- Owner: Member 1 route; Member 2 rule-to-workflow function; Member 4 renderer consumes the result.
+- Request: `DocumentRequest`. Load persisted rules for that document. No client rule override in the live API.
+- Target 200: `GenerateWorkflowResponse`, `{ "success": true, "documentId": "<uuid>", "workflowId": "<uuid>", "workflow": { "nodes": [], "edges": [] } }`. Empty graph here illustrates the envelope only; a successful generated workflow must contain valid nodes and edges.
+- Shared interface: `WorkflowDefinition`. Keep React Flow positions and UI data in the renderer adapter, outside the shared contract.
+- Errors: 400 invalid ID; 404 missing document; 409 rules not ready; 422 unsupported rule; 500 persistence failure.
 
-### Success Response (`201 Created`)
-```json
-{
-  "success": true,
-  "documentId": "doc-uuid-12345",
-  "name": "Employee-Travel-Expense-Policy.pdf",
-  "fileUrl": "https://<supabase-project>.supabase.co/storage/v1/object/public/policies/...",
-  "status": "uploaded",
-  "message": "File uploaded successfully."
-}
-```
+## POST /api/cases/execute
 
-### TypeScript Mapping
-- Maps to `PolicyDocument` in `types/contracts.ts`.
+- Owner: Member 1 route/persistence; Member 2 deterministic evaluator/evidence.
+- Request: `ExecuteCaseRequest`, `{ "workflowId": "<uuid>", "expenseCase": <ExpenseCase> }`.
+- Target 200: `ExecuteCaseResponse`, `{ "success": true, "caseId": "<uuid>", "caseResult": <CaseResult> }`.
+- Load workflow, document and rules server-side via workflowId. Never accept client-supplied decisions or arbitrary policy rules as authoritative.
+- Errors: 400 incomplete case, nonfinite/negative amount or rate, invalid calendar date, submission before expense date, nonpositive/noninteger supplied hotelNights; 404 missing workflow; 409 rules not ready; 422 unhandled rule or unresolved evidence; 500 persistence failure.
+- Hotel/lodging claims require a hotelNightlyRate at validation time even though the domain field is optional for non-hotel claims. Missing rate must not silently bypass EXP-004. Follow ADR-008; do not derive the rate from total amount.
+- Deterministic target: no violations = APPROVED; missing approvals/receipt/preapproval = ACTION_REQUIRED; hard cap or late submission = REJECTED. Accumulate all violations; REJECTED takes precedence. Equality to the cap or exactly 14 days is allowed. Compare strict typed values without JavaScript coercion.
+- The current partial evaluator is not this endpoint implementation. Member 2 must add all six operators, all six rules and boundary tests first.
 
----
+## POST /api/actions/generate
 
-## 2. POST `/api/documents/process`
-Triggers page-aware text parsing (`pdfjs-dist` / `unpdf`), page chunking, embedding generation, and vector insertion into `document_chunks`.
+- Owner: Member 1 route; Member 2 next-action text; Member 4 optional webhook adapter.
+- Request: `GenerateActionRequest`, `{ "caseId": "<uuid>" }`. Load stored input and result; do not trust a client-provided CaseResult.
+- Target 200: `GenerateActionResponse`, `{ "success": true, "caseId": "<uuid>", "action": "Request manager approval", "template": "<draft text>", "webhookTriggered": false }`.
+- Errors: 400 invalid ID; 404 missing case; 409 result not ready; 429/502 drafting provider failure; 500 persistence failure.
+- Draft generation never sends email automatically. Webhook dispatch remains optional, explicit, and outside this setup. A webhook failure must preserve the generated draft and case decision.
 
-- **Owned by:** Member 1 & Member 2 (Platform & AI Engine)
-- **Content-Type:** `application/json`
+## Independent development
 
-### Request Payload
-```json
-{
-  "documentId": "doc-uuid-12345"
-}
-```
-
-### Success Response (`200 OK`)
-```json
-{
-  "success": true,
-  "documentId": "doc-uuid-12345",
-  "status": "processed",
-  "pageCount": 6,
-  "chunkCount": 18,
-  "message": "Document parsed and vector indexed."
-}
-```
-
----
-
-## 3. POST `/api/rules/extract`
-Passes parsed policy chunks into Google Gemini LLM with structured output schema to extract verifiable business rules.
-
-- **Owned by:** Member 2 (AI Engine)
-- **Content-Type:** `application/json`
-
-### Request Payload
-```json
-{
-  "documentId": "doc-uuid-12345"
-}
-```
-
-### Success Response (`200 OK`)
-```json
-{
-  "success": true,
-  "documentId": "doc-uuid-12345",
-  "rulesCount": 6,
-  "rules": [
-    {
-      "id": "EXP-001",
-      "name": "Receipt Requirement Threshold",
-      "field": "amount",
-      "operator": ">",
-      "value": 5000,
-      "action": "require_receipt",
-      "citation": {
-        "page": 3,
-        "section": "2.1",
-        "text": "Itemized original receipts or tax invoices are strictly mandatory for any individual business expense exceeding PKR 5,000."
-      }
-    }
-  ],
-  "message": "Policy rules extracted with grounded citations."
-}
-```
-
-### TypeScript Mapping
-- Returns `PolicyRule[]` from `types/contracts.ts`.
-
----
-
-## 4. POST `/api/workflows/generate`
-Transforms structured `PolicyRule[]` into an interactive visual graph representation compatible with React Flow (`@xyflow/react`).
-
-- **Owned by:** Member 2 & Member 4 (AI Engine & Workflow)
-- **Content-Type:** `application/json`
-
-### Request Payload
-```json
-{
-  "documentId": "doc-uuid-12345",
-  "rules": [] // Optional override or uses persisted rules
-}
-```
-
-### Success Response (`200 OK`)
-```json
-{
-  "success": true,
-  "documentId": "doc-uuid-12345",
-  "workflow": {
-    "nodes": [
-      { "id": "node-1", "type": "start", "label": "Expense Submitted" },
-      { "id": "node-2", "type": "condition", "label": "Amount > PKR 5,000?", "ruleId": "EXP-001" },
-      { "id": "node-3", "type": "action", "label": "Validate Itemized Receipt", "ruleId": "EXP-001" }
-    ],
-    "edges": [
-      { "id": "edge-1", "source": "node-1", "target": "node-2" },
-      { "id": "edge-2", "source": "node-2", "target": "node-3", "label": "Yes (> 5,000)" }
-    ]
-  },
-  "message": "Visual workflow graph generated successfully."
-}
-```
-
-### TypeScript Mapping
-- Returns `WorkflowDefinition` from `types/contracts.ts`.
-
----
-
-## 5. POST `/api/cases/execute`
-Evaluates a submitted business expense claim against the deterministic rule engine and retrieves citations.
-
-- **Owned by:** Member 2 (AI Engine & Rule Engine)
-- **Content-Type:** `application/json`
-
-### Request Payload
-```json
-{
-  "employeeName": "Sarah Khan",
-  "category": "Hotel & Lodging",
-  "amount": 68000,
-  "receipt": true,
-  "managerApproval": false,
-  "financeApproval": false,
-  "internationalTravel": false,
-  "preApproval": false,
-  "expenseDate": "2026-09-28",
-  "submissionDate": "2026-10-02"
-}
-```
-
-### Success Response (`200 OK`)
-```json
-{
-  "success": true,
-  "caseResult": {
-    "status": "ACTION_REQUIRED",
-    "violations": [
-      {
-        "ruleId": "EXP-002",
-        "message": "Manager approval required for expense exceeding PKR 50,000.",
-        "action": "Obtain line manager approval sign-off.",
-        "citation": {
-          "page": 6,
-          "section": "4.2",
-          "text": "Any expense claim exceeding PKR 50,000 requires formal departmental manager review and written authorization."
-        }
-      }
-    ]
-  }
-}
-```
-
-### TypeScript Mapping
-- Accepts `ExpenseCase` from `types/contracts.ts`.
-- Returns `CaseResult` from `types/contracts.ts`.
-
----
-
-## 6. POST `/api/actions/generate`
-Generates actionable next steps (such as drafted approval requests or missing document notices) and optionally triggers a webhook (Make/Zapier).
-
-- **Owned by:** Member 2 & Member 4 (AI Engine & Automation)
-- **Content-Type:** `application/json`
-
-### Request Payload
-```json
-{
-  "caseResult": { ... },
-  "expenseCase": { ... }
-}
-```
-
-### Success Response (`200 OK`)
-```json
-{
-  "success": true,
-  "action": "Resolve 1 policy requirement(s): EXP-002",
-  "template": "Subject: Action Required: Expense Claim Review - Sarah Khan\n\nDear Reviewer,\n\n...",
-  "webhookTriggered": false,
-  "message": "Action generated successfully."
-}
-```
+Use the JSON case/rule/workflow fixtures and `mocks/case-results.json` for UI states. Do not call a 501 endpoint expecting success or use the partial engine to simulate complete compliance. When Member 1 implements a route, replace its 501 assertion in `tests/foundation.test.ts` with the real success/error tests in that same change.

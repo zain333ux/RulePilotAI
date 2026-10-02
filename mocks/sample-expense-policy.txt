@@ -1,0 +1,27 @@
+=== Demo Page 1 ===
+RulePilot Demo Company - Employee Travel & Expense Policy
+FICTIONAL TEST SOURCE. These page markers are authored demo references, not text extracted from an uploaded PDF.
+
+=== Demo Page 2 ===
+Section 1.4
+All employee reimbursement requests must be submitted within 14 calendar days of incurring the business expense.
+
+=== Demo Page 3 ===
+Section 2.1
+Itemized original receipts or tax invoices are strictly mandatory for any individual business expense exceeding PKR 5,000.
+
+=== Demo Page 4 ===
+Section 3.1
+Standard hotel accommodation for business travel must not exceed the maximum daily rate cap of PKR 25,000 per night.
+
+=== Demo Page 5 ===
+Section 3.8
+International travel expenses require documented vice-presidential pre-approval prior to ticket booking or travel confirmation.
+
+=== Demo Page 6 ===
+Section 4.2
+Any expense claim exceeding PKR 50,000 requires formal departmental manager review and written authorization.
+
+=== Demo Page 7 ===
+Section 4.5
+Disbursements exceeding PKR 100,000 require secondary executive review and sign-off by the Finance Department.

@@ -1,5 +1,7 @@
 # RulePilot AI — System Architecture & Technical Design
 
+This describes the target MVP. Current implementation: root Next.js app, static fixtures, partial engine and HTTP 501 scaffolds. Parsing, embeddings, RAG and persistence are not implemented.
+
 ## 1. System Overview
 RulePilot AI transforms static, passive company policies (PDFs/SOPs) into active, executable business workflows with grounded document citations.
 
@@ -25,7 +27,7 @@ flowchart TD
         BizCase["Business Case (ExpenseCase)"] --> Engine["Deterministic Rule Engine"]
         Rules -.-> Engine
         Engine --> Evaluation["Case Evaluation Logic (>, <, ==, !=)"]
-        Evaluation --> CaseRes["CaseResult (APPROVED / ACTION_REQUIRED)"]
+        Evaluation --> CaseRes["CaseResult (APPROVED / ACTION_REQUIRED / REJECTED)"]
         CaseRes --> EvidenceRetrieval["Evidence Retriever (Semantic RAG)"]
         PGVector -.-> EvidenceRetrieval
         EvidenceRetrieval --> Citations["Grounded Citations (Doc, Section, Page)"]
@@ -43,9 +45,9 @@ flowchart TD
 > **Deterministic application code = Execute structured rules wherever possible.**
 
 ### Why this division matters:
-1. **Zero Hallucination in Decisions:** An LLM may miscalculate numbers, misunderstand date ranges, or inconsistently evaluate edge cases. Deterministic JavaScript code (`lib/rules/engine.ts`) guarantees that `amount > 50000` evaluates identically 100% of the time.
+1. Deterministic comparisons are repeatable; extracted rules and citations still require validation.
 2. **Explainability & Auditability:** Regulated enterprise compliance (finance, HR, procurement) demands mathematically verifiable decisions backed by page citations.
-3. **Speed & Reliability:** Evaluating a deterministic JSON rule takes less than 1 millisecond and requires zero token cost or network round-trips.
+3. Local comparisons need no LLM call. Performance has not been benchmarked.
 
 ---
 
@@ -75,3 +77,13 @@ flowchart TD
 ### 4.5. Action & Webhook Dispatcher
 - Generates approval drafts, notification emails, and missing document notices.
 - Webhook trigger to Make or Zapier is completely non-blocking and optional.
+
+## Integration boundaries
+
+Member 1 owns API adapters and persistence. Member 2 supplies document/AI/rule functions; Member 4 renders WorkflowDefinition and owns optional automation. See types/api.ts for HTTP envelopes. Execution links workflowId to its document and rules; action generation links caseId to stored input and results. A browser cannot choose authoritative rules or decisions.
+
+Citation.page is a one-based PDF page; Citation.text must match source content. Citation has no documentId, so preserve document/workflow/case relationships through the API and database. RAG queries must supply the current document ID. Missing evidence is unresolved, not an invented quote.
+
+The existing engine covers EXP-001/002/003/006 only and ignores generic operators. EXP-004/005, validation and unsupported-rule rejection are Member 2 work. Hotel fields are agreed in ADR-008; missing hotel rate must be rejected for hotel claims before evaluation. The mock workflow covers three thresholds and is not a complete six-rule execution graph.
+
+Do not await optional webhook delivery in the decision path. The existing webhook helper is disconnected and has not been live-tested; Member 4 must add a bounded timeout and failure tests before use.

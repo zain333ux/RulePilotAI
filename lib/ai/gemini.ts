@@ -5,6 +5,7 @@
  * Extracts structured PolicyRule[] from parsed policy text.
  * Never fabricate rules or citations when Gemini is unavailable.
  */
+import "server-only";
 import { PolicyRule } from "@/types/contracts";
 
 export class GeminiNotConfiguredError extends Error {

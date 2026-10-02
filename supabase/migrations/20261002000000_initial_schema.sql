@@ -6,7 +6,7 @@
 -- MANUAL SETUP (required once per Supabase project)
 -- 1. Enable the Database → Extensions → vector (pgvector) if not auto-created.
 -- 2. Run this entire migration in the SQL Editor.
--- 3. Storage → New bucket → name: policies → Public read recommended for MVP demos.
+-- 3. Storage → New bucket → name: policies → Private bucket; use signed URLs for previews.
 -- 4. Copy Project URL + anon key + service_role key into .env.local (never commit).
 -- ---------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS document_chunks (
     page_number INTEGER NOT NULL CHECK (page_number >= 1),
     section TEXT,
     content TEXT NOT NULL,
-    embedding vector(768), -- Dimensions for Gemini text-embedding-004
+    embedding vector(768), -- Storage contract: choose a supported model with explicit 768-dimensional output
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 

@@ -5,6 +5,7 @@
  * Performs semantic similarity search against document_chunks via Supabase pgvector RPC.
  * Never fabricate citations or page numbers.
  */
+import "server-only";
 import { Citation } from "@/types/contracts";
 
 export interface RetrievedChunk {

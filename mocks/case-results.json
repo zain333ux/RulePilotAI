@@ -1,0 +1,56 @@
+{
+  "approved": {
+    "status": "APPROVED",
+    "violations": []
+  },
+  "approval-required": {
+    "status": "ACTION_REQUIRED",
+    "violations": [
+      {
+        "ruleId": "EXP-002",
+        "message": "Manager Approval Threshold requirement is missing.",
+        "action": "require_manager_approval",
+        "citation": {
+          "page": 6,
+          "section": "4.2",
+          "text": "Any expense claim exceeding PKR 50,000 requires formal departmental manager review and written authorization."
+        }
+      }
+    ]
+  },
+  "multiple-violations": {
+    "status": "ACTION_REQUIRED",
+    "violations": [
+      {
+        "ruleId": "EXP-001",
+        "message": "Receipt Requirement Threshold requirement is missing.",
+        "action": "require_receipt",
+        "citation": {
+          "page": 3,
+          "section": "2.1",
+          "text": "Itemized original receipts or tax invoices are strictly mandatory for any individual business expense exceeding PKR 5,000."
+        }
+      },
+      {
+        "ruleId": "EXP-002",
+        "message": "Manager Approval Threshold requirement is missing.",
+        "action": "require_manager_approval",
+        "citation": {
+          "page": 6,
+          "section": "4.2",
+          "text": "Any expense claim exceeding PKR 50,000 requires formal departmental manager review and written authorization."
+        }
+      },
+      {
+        "ruleId": "EXP-003",
+        "message": "Finance Approval Threshold requirement is missing.",
+        "action": "require_finance_approval",
+        "citation": {
+          "page": 7,
+          "section": "4.5",
+          "text": "Disbursements exceeding PKR 100,000 require secondary executive review and sign-off by the Finance Department."
+        }
+      }
+    ]
+  }
+}

@@ -28,20 +28,20 @@ Implement `POST /api/documents/upload`:
 # Definition of Done for First Milestone
 - [ ] A PDF uploaded via `/api/documents/upload` appears in Supabase Storage bucket `policies`.
 - [ ] A new row is created in the `documents` PostgreSQL table.
-- [ ] API returns HTTP 201 with `{ success: true, documentId, name, fileUrl, status: "uploaded" }`.
-- [ ] Endpoint falls back safely with a clear mock response when Supabase credentials are absent.
+- [ ] API returns HTTP 201 UploadResponse from types/api.ts, including documentId, storagePath and document metadata.
+- [ ] Missing credentials return a clear 503 error; UI uses explicit fixtures without pretending a file was persisted.
 
 ---
 
 # Completed
-- Initial route skeletons created in `app/api/documents/upload/route.ts`, `app/api/documents/process/route.ts` — currently return **HTTP 501** until you implement them.
+- Initial route skeletons created in `app/api/documents/upload/route.ts`, `app/api/documents/process/route.ts` — currently return **HTTP 501** until Member 1 implements them.
 - Safe Supabase clients configured in `lib/supabase/client.ts` (`getBrowserSupabase()` → null if unset) and `lib/supabase/server.ts` (`getAdminSupabase()` throws if unset).
 - PostgreSQL database schema and pgvector migration created in `supabase/migrations/20261002000000_initial_schema.sql`.
 
 ---
 
 # In Progress
-- Configuring live Supabase project credentials in `.env.local`.
+No member-specific implementation is claimed yet. This is a starting template; update it after your first milestone.
 
 ---
 
@@ -89,7 +89,7 @@ Implement `POST /api/documents/upload`:
 # Next Exact Steps
 1. Create Supabase project in Supabase dashboard.
 2. Run migration SQL `supabase/migrations/20261002000000_initial_schema.sql`.
-3. Create `policies` bucket in Supabase Storage with public read access.
+3. Create a private `policies` bucket; use server uploads and temporary signed read URLs.
 4. Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` to `.env.local`.
 5. Update `app/api/documents/upload/route.ts` to perform real Supabase storage upload and document insert.
 
@@ -97,3 +97,9 @@ Implement `POST /api/documents/upload`:
 
 # Session History
 - **Setup Session:** Created platform skeleton, Supabase client/server utilities, database migration script, and initial API routes.
+
+# Expected Output
+A persisted PDF and documents row, with UploadResponse matching types/api.ts; invalid files and storage failures tested.
+
+## Starting coordination
+Branch from accepted dev into feature/platform. Follow docs/MEMBER_OWNERSHIP.md for shared files. Run lint, typecheck, tests and build before declaring the milestone complete; update this file after each meaningful step.

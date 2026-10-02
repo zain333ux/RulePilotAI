@@ -8,10 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx tests/rules/engine.test.ts && tsx tests/e2e/workflow.test.ts && tsx --test tests/foundation.test.ts",
+    "test": "tsx tests/rules/engine.test.ts && tsx tests/e2e/workflow.test.ts && tsx --test tests/foundation.test.ts tests/fixtures.test.ts",
     "test:rules": "tsx tests/rules/engine.test.ts",
     "test:workflow": "tsx tests/e2e/workflow.test.ts",
-    "test:foundation": "tsx --test tests/foundation.test.ts"
+    "test:foundation": "tsx --test tests/foundation.test.ts",
+    "test:fixtures": "tsx --test tests/fixtures.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
@@ -22,6 +23,7 @@
     "next": "16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
     "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {

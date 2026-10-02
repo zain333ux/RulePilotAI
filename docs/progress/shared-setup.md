@@ -4,7 +4,7 @@
 ---
 
 # Current Objective
-Finish remaining foundation review items from `docs/SETUP_REVIEW.md`, validate, and push to GitHub so Members 1–4 can branch independently.
+Shared foundation review is verified on setup/parallel-readiness. Integrate and share this reviewed branch before members start from dev.
 
 ---
 
@@ -35,11 +35,13 @@ Finish remaining foundation review items from `docs/SETUP_REVIEW.md`, validate, 
 ---
 
 # In Progress
-- None for shared setup after validation + push.
+- Implementation and local validation complete; integration/publishing remains with the integration lead.
 
 ---
 
-# Files Created/Modified (Session 2 highlights)
+# Files Created/Modified
+
+Session 2 highlights:
 - `lib/api/not-implemented.ts`
 - `app/api/**/route.ts` (all six → 501)
 - `lib/ai/gemini.ts`, `lib/embeddings/generator.ts`, `lib/rag/retriever.ts`
@@ -61,7 +63,7 @@ Finish remaining foundation review items from `docs/SETUP_REVIEW.md`, validate, 
 ---
 
 # Important Decisions
-- ADR-008 hotel field open · ADR-009 API 501 · Partial engine disconnected from HTTP until Member 2 finishes six rules
+- ADR-008 hotel fields frozen · ADR-009 API 501 · Partial engine disconnected from HTTP until Member 2 finishes six rules
 
 ---
 
@@ -88,7 +90,7 @@ Finish remaining foundation review items from `docs/SETUP_REVIEW.md`, validate, 
 
 # Known Problems
 - External credentials (Gemini, Supabase) not configured — expected; APIs stay 501.
-- EXP-004 blocked on additive hotel fields (ADR-008).
+- EXP-004/005 and general operator support remain Member 2 implementation work; hotel fields are frozen.
 
 ---
 
@@ -98,11 +100,34 @@ Finish remaining foundation review items from `docs/SETUP_REVIEW.md`, validate, 
 ---
 
 # Next Exact Steps
-1. Push `main` to `https://github.com/zain333ux/RulePilotAI`
-2. Members create feature branches and begin first milestones
+1. Integrate the reviewed setup branch, then create dev from accepted main.
+2. Members create their feature branches from dev in separate clones/worktrees.
 
 ---
 
 # Session History
 - **Session 1:** Initial bootstrap of foundation artifacts.
 - **Session 2:** Hardened unsafe scaffolds, fixed fixtures, docs, validation, GitHub push.
+
+
+## Session 4 milestone 1 (2026-10-02)
+
+Re-read latest main at 88bdbd5 after the user's completed setup. Created setup/parallel-readiness to isolate review. Added AGENTS.md, typed HTTP envelopes in types/api.ts, sample text and expected result fixtures. Corrected route ownership to Member 1 and documented workflowId/caseId linkage, target validation/status semantics and shared config ownership. Kept types/contracts.ts and partial rule implementation unchanged. Added server-only imports and broader environment ignores. Validation in progress; previous session results are historical.
+
+
+## Session 4 milestone 2 (2026-10-02)
+
+Added fixture tests for exact page/section quotes, expected violation IDs/citations and graph connectivity. Initial citation test exposed CRLF handling on Windows; normalization fixed it. npm test now passes all checks. Production build succeeds. Added server-only 0.0.1 (install retried after sandbox EACCES; audit reports zero vulnerabilities), broadened .env ignores, and documented/appended server-access SQL migration. Domain contracts unchanged. Lint/typecheck final rerun and production HTTP smoke verification underway. No live credentials or database test available.
+
+
+## Session 4 milestone 3: verification complete
+
+- Added files: AGENTS.md; types/api.ts; mocks/README.md, sample-expense-policy.txt and case-results.json; tests/fixtures.test.ts; supabase/README.md and migrations/20261002010000_server_access.sql.
+- Updated files: API route ownership comments/501 details, server-only imports in five modules, package.json/package-lock.json, .gitignore, SQL setup comments, README, architecture/API/decision/ownership/development docs and all starting templates. types/contracts.ts is unchanged.
+- npm install server-only: passed after retry with network access; one package added, zero audit vulnerabilities.
+- npm run lint: passed without warnings. npm run typecheck: passed. npm run build: passed, all 14 pages generated.
+- npm test: passed three prototype engine cases, workflow structure check, six 501 handler checks and three fixture checks. The quote check initially failed on CRLF, then passed after normalization.
+- Production server: direct Next CLI start on loopback port 3100 succeeded after npm flag-forwarding failure. GET /, /dashboard, /policies/upload, /workflows and /cases returned 200. All six POST routes returned 501 NOT_IMPLEMENTED.
+- git diff --check passed; .env.local/.env.production/.env.staging/.env.test are ignored. Every progress file has required sections; docs/fixtures decode as UTF-8.
+- External limitations: SQL not applied; Supabase, Gemini, webhook delivery and browser visual interaction not tested. Full engine remains Member 2 work. No unresolved shared hotel field decision.
+- Next: integration lead incorporates setup/parallel-readiness, shares main/dev baseline, then members branch from dev in separate clones/worktrees. No push or main merge performed by this review.

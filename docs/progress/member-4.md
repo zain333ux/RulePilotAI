@@ -47,7 +47,7 @@ Connect React Flow (`@xyflow/react`) to render `mocks/workflow.json`:
 ---
 
 # In Progress
-- Creating custom node components for React Flow (`ApprovalNode`, `ConditionNode`, `ActionNode`).
+No member-specific implementation is claimed yet. This is a starting template; update it after your first milestone.
 
 ---
 
@@ -104,3 +104,9 @@ Connect React Flow (`@xyflow/react`) to render `mocks/workflow.json`:
 
 # Session History
 - **Setup Session:** Configured React Flow, built mock workflow fixture, created timeline and webhook modules, and wrote workflow validation tests.
+
+# Expected Output
+WorkflowDefinition renders on app/workflows using the existing starter. Add browser QA; the current workflow test checks data only, not rendered UI.
+
+## Starting coordination
+Branch from accepted dev into feature/workflow. Follow docs/MEMBER_OWNERSHIP.md for shared files. Run lint, typecheck, tests and build before declaring the milestone complete; update this file after each meaningful step.

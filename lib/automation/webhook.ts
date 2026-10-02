@@ -5,6 +5,8 @@
  * Triggers external Make / Zapier webhooks.
  * IMPORTANT: RulePilot AI must function fully even if the webhook fails or is unconfigured.
  */
+import "server-only";
+
 export async function triggerAutomationWebhook(payload: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
   const webhookUrl = process.env.MAKE_WEBHOOK_URL;
 

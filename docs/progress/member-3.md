@@ -50,7 +50,7 @@ Build the primary application UI flows using mock fixtures from `/mocks`:
 ---
 
 # In Progress
-- Polishing dashboard layout and adding interactive case execution feedback.
+No member-specific implementation is claimed yet. This is a starting template; update it after your first milestone.
 
 ---
 
@@ -101,7 +101,7 @@ Build the primary application UI flows using mock fixtures from `/mocks`:
 ---
 
 # Next Exact Steps
-1. Add interactive state in `app/cases/page.tsx` calling `POST /api/cases/execute` or local mock evaluation.
+1. Add interactive state in app/cases/page.tsx using mocks/case-results.json; switch to ExecuteCaseRequest/Response when Member 1 implements the endpoint.
 2. Build Citation modal/drawer displaying the policy text snippet and page preview.
 3. Add drag-and-drop file upload handler in `app/policies/upload/page.tsx`.
 
@@ -109,3 +109,9 @@ Build the primary application UI flows using mock fixtures from `/mocks`:
 
 # Session History
 - **Setup Session:** Created app shell, navigation, starter pages, UI primitives, and form components.
+
+# Expected Output
+Mock product screens consume domain fixtures and mocks/case-results.json without service credentials or dependence on the partial engine.
+
+## Starting coordination
+Branch from accepted dev into feature/frontend. Follow docs/MEMBER_OWNERSHIP.md for shared files. Run lint, typecheck, tests and build before declaring the milestone complete; update this file after each meaningful step.

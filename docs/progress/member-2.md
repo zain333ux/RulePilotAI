@@ -41,12 +41,12 @@ Connect Google Gemini API to parse sample expense policy text into a validated a
 - Ground truth test fixtures created; approval case uses **Client Entertainment** category.
 - Automated test suite in `tests/rules/engine.test.ts` running with `npm run test:rules`.
 - AI/RAG/embedding stubs throw until implemented — do not return fabricated evidence.
-- `POST /api/cases/execute` and related AI routes return **501** until you wire them.
+- `POST /api/cases/execute` and related AI routes return **501** until Member 1 integrates your functions.
 
 ---
 
 # In Progress
-- Integrating Google Gemini API (`@google/genai` or direct REST) with structured JSON output schema.
+No member-specific implementation is claimed yet. This is a starting template; update it after your first milestone.
 
 ---
 
@@ -62,13 +62,13 @@ Connect Google Gemini API to parse sample expense policy text into a validated a
 
 # APIs / Interfaces Used
 - `PolicyRule`, `Citation`, `ExpenseCase`, `CaseResult` from `types/contracts.ts`
-- Google Gemini API (`gemini-1.5-flash` or `gemini-2.0-flash` with structured outputs)
+- Google Gemini API: verify current model availability before implementation; no model is selected by this foundation.
 
 ---
 
 # Important Decisions
 - Core Rule: The LLM extracts and interprets policy text into structured JSON; deterministic TypeScript code evaluates numerical and logical operators against business cases.
-- Embeddings dimension: 768 (`text-embedding-004`).
+- Embedding storage dimension: 768. Explicitly request and verify that output size with the chosen model; do not assume a provider default.
 
 ---
 
@@ -81,12 +81,12 @@ Connect Google Gemini API to parse sample expense policy text into a validated a
 - Approved Case: Status = `APPROVED`, 0 violations.
 - Approval Required Case (PKR 68,000): Status = `ACTION_REQUIRED`, 1 violation (`EXP-002`).
 - Multiple Violations Case (PKR 120,000): Status = `ACTION_REQUIRED`, 3 violations (`EXP-001`, `EXP-002`, `EXP-003`).
-- 100% test pass rate.
+- These three tests cover the prototype only, not all rules or input boundaries.
 
 ---
 
 # Known Problems
-- None. `GEMINI_API_KEY` required in `.env.local` for live LLM extraction calls.
+- Partial engine skips EXP-004/005 and ignores generic operators. Add boundary and unsupported-input tests before integrating it. GEMINI_API_KEY is needed for live extraction.
 
 ---
 
@@ -105,3 +105,9 @@ Connect Google Gemini API to parse sample expense policy text into a validated a
 
 # Session History
 - **Setup Session:** Created deterministic rule engine, rule unit tests, mock rules fixture, and AI module stubs.
+
+# Expected Output
+Sample policy text produces validated PolicyRule[] with quotes verified against mocks/sample-expense-policy.txt. Hand tested functions to Member 1; do not edit route adapters.
+
+## Starting coordination
+Branch from accepted dev into feature/ai-engine. Follow docs/MEMBER_OWNERSHIP.md for shared files. Run lint, typecheck, tests and build before declaring the milestone complete; update this file after each meaningful step.

@@ -7,6 +7,8 @@ All team members (human developers and coding AI agents) MUST read, understand, 
 ## Mandatory Reading Order Before Any Coding Session
 
 Before starting any future coding session or prompt, you MUST read the following documents in order:
+Read the handoff snapshot immediately after the PRD to orient yourself, then complete this checklist before coding.
+
 1. **PRD** (`RulePilot AI — PRD.html`)
 2. **Member-wise implementation plan / Playbook** (`RulePilot_AI_Team_Implementation_Playbook.docx`)
 3. `docs/DEVELOPMENT_RULES.md` (this file)
@@ -35,3 +37,12 @@ Before starting any future coding session or prompt, you MUST read the following
 16. **No microservices for the MVP.** RulePilot AI is a single unified Next.js repository deployed directly on Vercel.
 17. **AI interprets policy; deterministic code executes structured rules wherever possible.** The LLM understands natural-language policy text and outputs structured JSON rules. JavaScript/TypeScript executes thresholds, logic operators, and case compliance. RAG provides grounded page and section evidence.
 18. **Never fabricate policy citations, page numbers, thresholds, or sections.** If citation metadata or evidence is missing or uncertain, mark it explicitly as unverified rather than hallucinating facts.
+
+## Shared integration rules
+
+- Read types/contracts.ts, types/api.ts, API_CONTRACTS.md, PROJECT_DECISIONS.md and MEMBER_OWNERSHIP.md before touching interfaces.
+- Follow feature/* -> dev -> main in separate clones/worktrees. The integration lead creates dev from the accepted foundation. Do not code directly on main.
+- Member 1 alone owns route adapters. Other members supply functions and use fixtures while endpoints return 501.
+- Update your own progress after each meaningful milestone. Include exact files, signatures, validation commands/results, limitations and next action; do not write generic activity notes.
+- Replace the relevant scaffold-only 501 test with endpoint behavior tests when implementing that endpoint. Keep unrelated scaffold tests until their owners implement those routes.
+- Never use the partial engine to claim all six rules passed. Use mocks/case-results.json for offline UI states.

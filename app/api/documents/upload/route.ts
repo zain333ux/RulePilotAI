@@ -2,7 +2,7 @@ import { notImplemented } from "@/lib/api/not-implemented";
 
 /**
  * POST /api/documents/upload
- * Owned by Member 1 (Platform / Backend).
+ * Owned by Member 1 (HTTP routes); domain libraries keep their documented owners.
  * Scaffold only — returns HTTP 501 until Supabase Storage + documents insert are connected.
  */
 export async function POST(request: Request) {

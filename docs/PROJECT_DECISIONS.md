@@ -19,7 +19,7 @@ This document tracks all foundational architectural, technical, and interface de
   1. **Google Gemini LLM** is strictly used to parse unstructured natural language policy documents into structured JSON (`PolicyRule[]`).
   2. **Deterministic application code** (`lib/rules/engine.ts`) executes mathematical and logical operators (`>`, `<`, `>=`, `<=`, `==`, `!=`) against business case inputs (`ExpenseCase`).
   3. **RAG & pgvector** retrieve grounded page-aware snippets (`Citation`) as audit evidence.
-- **Consequences:** Decisions are 100% reproducible, testable, explainable, and trustworthy for enterprise compliance audits.
+- **Consequences:** The same validated inputs produce repeatable decisions. Correctness still depends on complete rule execution and verified source evidence.
 
 ---
 
@@ -89,7 +89,7 @@ This document tracks all foundational architectural, technical, and interface de
 ## ADR-009: API Scaffolds Return HTTP 501
 - **Status:** Accepted
 - **Context:** Fake success responses (mock storage URLs, fabricated chunk counts, partial rule evaluation that skipped hotel/deadline) are unsafe starting contracts.
-- **Decision:** All six `app/api/**` scaffolds return `{ success: false, code: "NOT_IMPLEMENTED" }` with HTTP **501**. Members implement real handlers in their branches. Parallel UI work uses `/mocks` and `lib/rules/engine.ts` directly.
+- **Decision:** All six `app/api/**` scaffolds return `{ success: false, code: "NOT_IMPLEMENTED" }` with HTTP **501**. Member 1 implements handlers using the other members' domain functions. Parallel UI work uses `/mocks`, including explicit expected case results; the partial engine remains a Member 2 prototype.
 - **Consequences:** No endpoint pretends production behavior during foundation phase.
 
 ---
@@ -99,11 +99,11 @@ This document tracks all foundational architectural, technical, and interface de
 - **Status:** Accepted
 - **Context:** Need storage for uploaded PDFs, page-aware text chunks, vector embeddings for citation search, structured rules, workflows, and evaluation histories.
 - **Decision:**
-  - Supabase PostgreSQL with `vector` extension (`vector(768)` for Gemini embeddings).
+  - Supabase PostgreSQL with `vector` extension (`vector(768)` as the repository dimension contract; Member 2 must select a currently supported model and explicitly request/verify 768 output dimensions).
   - Storage bucket: `policies`.
   - Tables: `documents`, `document_chunks`, `policy_rules`, `workflows`, `cases`, `case_results`.
   - Migration script: `supabase/migrations/20261002000000_initial_schema.sql`.
-  - Safe client fallback: `lib/supabase/client.ts` and `lib/supabase/server.ts` compile without throwing if environment variables are not yet populated.
+  - Safe client fallback: `lib/supabase/client.ts` and `lib/supabase/server.ts` can be imported without credentials; the browser factory returns null and the admin factory throws when called without configuration. Server modules import server-only.
 
 ---
 
@@ -118,3 +118,29 @@ This document tracks all foundational architectural, technical, and interface de
 - **Status:** Accepted
 - **Context:** External automation (Make/Zapier) can experience network delays, quota limits, or configuration failures during live judging.
 - **Decision:** The core RulePilot AI pipeline MUST work completely standalone without external services. Webhook notifications are purely an optional bonus trigger (`lib/automation/webhook.ts`) that will never block or break the evaluation loop.
+
+## ADR-010: Integration envelopes and one route owner
+
+- Accepted during the 2026-10-02 readiness review, before member implementation. `types/contracts.ts` is unchanged. New `types/api.ts` freezes HTTP envelopes in `docs/API_CONTRACTS.md`.
+- Member 1 owns all route handlers and API transport tests. Member 2 supplies domain functions; Member 4 supplies renderer and optional automation functions. This resolves conflicting route comments and API ownership labels.
+- Workflow generation returns workflowId; execution accepts `{ workflowId, expenseCase }` and returns caseId. Action generation accepts caseId and loads the authoritative stored result. This ties document, workflow, case and result together without changing domain types.
+- No metadata-only upload success and no client-supplied rule/result overrides. Private bucket paths persist; signed URLs are temporary. Use a 4 MiB function upload limit; direct uploads for larger PDFs need a coordinated follow-up.
+- Target errors use ApiError. Current routes remain 501 and do not perform validation/persistence yet.
+- For future execution: hotel/lodging input missing hotelNightlyRate is invalid, not a non-hotel exemption. The optional field keeps non-hotel fixtures valid. Finite nonnegative amounts/rates, real ISO calendar dates, nonnegative date deltas and positive integer supplied nights are required.
+- Target status mapping: all clear APPROVED; missing prerequisites ACTION_REQUIRED; hotel cap/late claim REJECTED, with all violations retained. Unsupported rules or unresolved citations return a 422 error, never automatic approval.
+
+## ADR-011: Shared files and integration workflow
+
+- Follow the playbook: feature/* branches merge into dev; the integration lead validates dev before merging into main. A branch name in documentation does not mean it already exists.
+- Each developer uses a separate clone or worktree. Shared package files, lockfile, config and contracts require coordination. Member 1 coordinates dependencies, CI and deployments; Member 3 owns shared UI primitives/root layout; Member 4 owns app/workflows.
+- Add root AGENTS.md to route future coding agents into the persistent handoff system. Member progress files are starter templates, not claims of active work.
+- UI development uses static CaseResult examples. Existing partial rule code is preserved for Member 2 but is not a complete compliance service.
+- Server-only imports enforce the boundary around secrets. `.env*` is ignored except `.env.example`.
+
+## ADR-012: Database access baseline
+
+- Keep private policy storage, enable RLS on the six tables, and restrict table/RPC access to the server service role through the additive migration 20261002010000_server_access.sql. No auth or user policy system is introduced.
+- The migration is prepared but not live-tested. Member 1 applies both migrations and verifies access before using public credentials. Original schema relationships remain unchanged.
+- The repository pins the 768-dimensional storage shape, not a provider model. Member 2 chooses a supported model and verifies output size before embedding real chunks.
+
+Implementation references checked during review: [Next.js server/client boundaries](https://nextjs.org/docs/app/getting-started/server-and-client-components), [Supabase pgvector](https://supabase.com/docs/guides/database/extensions/pgvector), [shadcn manual configuration](https://ui.shadcn.com/docs/installation/manual).

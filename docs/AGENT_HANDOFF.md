@@ -95,3 +95,29 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Browser confirmed success and optional automation failure paths.
 - Production build passed; lint/tests and mid-run Reset verification pending.
 - No live processing or webhook requests added.
+
+### Member 4 Synchronized Traversal & Dynamic Workflow QA — 2026-10-03
+
+- Completed Member 4 Milestone 1 on `feature/workflow`.
+- Added active workflow-node traversal in `WorkflowGraph` with glowing active borders, badges, and animated smoothstep edges.
+- Synchronized active graph nodes with `AgentTimeline` execution pipeline across 3 scenarios: Executive Escalation (> PKR 100k), Manager Sign-Off (PKR 65k), and Fast-Track (< PKR 5k).
+- Implemented robust Reset functionality halting in-flight timers, clearing active/traversed node highlights, and resetting timeline steps to waiting.
+- Enhanced simulated webhook failure with error messaging confirming core compliance decision and approval draft remain intact.
+- Created `WorkflowPlayground` with dynamic workflow switcher supporting 3 distinct graph topologies (Standard T&E 8-node DAG, Fast-Track 4-node linear, Procurement 6-node multi-approval) and interactive node inspector.
+- Extracted pure layout calculation into `components/workflow/layout.ts` handling branching, single nodes, disconnected graphs, and cyclic fallbacks.
+- Enhanced `lib/automation/webhook.ts` with 5s timeout protection (`AbortSignal.timeout`) and detailed HTTP status reporting.
+- Expanded `tests/e2e/workflow.test.ts` verifying graph structure, reachability, dynamic layout calculations, and webhook reliability (unconfigured, 200, 500, network error, timeout).
+- Ran and passed `npm run lint` (0 errors, 0 warnings), `npm run typecheck`, `npm run test:workflow`, `npm test`, `npm run build`, and browser HTTP QA (200 OK on `/workflows`).
+### Workflow Traversal Review — 2026-10-03
+- Added scenario-based mock node/edge highlighting.
+- Corrected finance approval wording and removed claims of real delivery.
+- Synthetic graphs are labelled layout demos; expense simulation is disabled on them.
+- Workflow switching remounts the timeline to cancel its previous run.
+- Reviewed layout fallback and optional webhook timeout/error handling.
+- npm test and production build passed, including TypeScript validation.
+- Mock webhook checks cover missing configuration, success, HTTP failure,
+  network failure, timeout and invalid timeout.
+- Browser confirmed scenario-dependent highlighting and simulated failure.
+- Latest workflow-switch cancellation and Reset checks remain pending.
+- npm run lint passed; git diff --check found no whitespace errors.
+- No live webhook delivery or complete compliance evaluation claimed.

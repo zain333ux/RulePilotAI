@@ -20,14 +20,21 @@ import type {
   WorkflowNodeType,
 } from "@/types/contracts";
 
-interface WorkflowGraphProps {
+export interface WorkflowGraphProps {
   workflow: WorkflowDefinition;
+  activeNodeId?: string | null;
+  traversedNodeIds?: string[];
+  activeEdgeIds?: string[];
+  onNodeClick?: (nodeId: string) => void;
+  className?: string;
 }
 
 type PolicyNode = Node<
   {
     label: string;
     kind: WorkflowNodeType;
+    isActive?: boolean;
+    isTraversed?: boolean;
   },
   "policy"
 >;
@@ -74,33 +81,59 @@ function WorkflowNode({ data, selected }: NodeProps<PolicyNode>) {
   const design = nodeStyles[data.kind];
   const Icon = design.icon;
 
+  const isActive = Boolean(data.isActive);
+  const isTraversed = Boolean(data.isTraversed && !isActive);
+
+  const borderColor = isActive
+    ? "#818cf8"
+    : isTraversed
+      ? "#10b981"
+      : selected
+        ? "#ffffff"
+        : design.border;
+
+  const boxShadow = isActive
+    ? "0 0 0 3px rgba(129, 140, 248, 0.45), 0 0 24px rgba(99, 102, 241, 0.6)"
+    : isTraversed
+      ? "0 0 0 2px rgba(16, 185, 129, 0.35), 0 0 12px rgba(16, 185, 129, 0.25)"
+      : selected
+        ? `0 0 0 4px ${design.border}40`
+        : "none";
+
   return (
     <div
-      className="w-[220px] border-2 px-4 py-3 transition-shadow"
+      className="relative w-[220px] border-2 px-4 py-3 transition-all duration-300"
       style={{
         background: design.background,
-        borderColor: selected ? "#ffffff" : design.border,
+        borderColor,
         borderRadius:
           data.kind === "start" || data.kind === "end" ? 28 : 12,
-        boxShadow: selected
-          ? `0 0 0 4px ${design.border}40`
-          : "none",
+        boxShadow,
       }}
     >
       {data.kind !== "start" && (
         <Handle
           type="target"
           position={Position.Top}
-          style={{ background: design.border }}
+          style={{ background: isActive ? "#818cf8" : design.border }}
         />
       )}
 
-      <div
-        className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase"
-        style={{ color: design.color }}
-      >
-        <Icon size={16} />
-        <span>{design.title}</span>
+      <div className="mb-2 flex items-center justify-between gap-1 text-xs font-semibold uppercase">
+        <div className="flex items-center gap-1.5" style={{ color: design.color }}>
+          <Icon size={16} />
+          <span>{design.title}</span>
+        </div>
+        {isActive && (
+          <span className="flex items-center gap-1 rounded bg-indigo-500/30 px-1.5 py-0.5 text-[9px] font-bold text-indigo-200 ring-1 ring-indigo-400 animate-pulse">
+            ACTIVE
+          </span>
+        )}
+        {isTraversed && (
+          <span className="flex items-center gap-0.5 rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300 ring-1 ring-emerald-500/40">
+            DONE
+          </span>
+        )}
       </div>
 
       <p className="text-sm font-medium leading-5 text-white">
@@ -111,7 +144,7 @@ function WorkflowNode({ data, selected }: NodeProps<PolicyNode>) {
         <Handle
           type="source"
           position={Position.Bottom}
-          style={{ background: design.border }}
+          style={{ background: isActive ? "#818cf8" : design.border }}
         />
       )}
     </div>
@@ -122,109 +155,47 @@ const nodeTypes: NodeTypes = {
   policy: WorkflowNode,
 };
 
-function createLayout(workflow: WorkflowDefinition): PolicyNode[] {
-  const incoming = new Map<string, number>();
-  const children = new Map<string, string[]>();
-  const levels = new Map<string, number>();
+import { createLayout } from "./layout";
+export { createLayout };
 
-  for (const node of workflow.nodes) {
-    incoming.set(node.id, 0);
-    children.set(node.id, []);
-    levels.set(node.id, 0);
-  }
 
-  for (const edge of workflow.edges) {
-    if (!incoming.has(edge.source) || !incoming.has(edge.target)) {
-      continue;
-    }
+export function WorkflowGraph({
+  workflow,
+  activeNodeId,
+  traversedNodeIds,
+  activeEdgeIds,
+  onNodeClick,
+  className = "h-[600px] w-full",
+}: WorkflowGraphProps) {
+  const nodes = useMemo(
+    () => createLayout(workflow, activeNodeId, traversedNodeIds),
+    [workflow, activeNodeId, traversedNodeIds],
+  );
 
-    children.get(edge.source)!.push(edge.target);
-    incoming.set(edge.target, incoming.get(edge.target)! + 1);
-  }
+  const edges: Edge[] = useMemo(() => {
+    if (!workflow || !Array.isArray(workflow.edges)) return [];
+    const activeEdgeSet = new Set(activeEdgeIds ?? []);
 
-  const queue = workflow.nodes
-    .filter((node) => incoming.get(node.id) === 0)
-    .map((node) => node.id);
+    return workflow.edges.map((edge) => {
+      const isActive = activeEdgeSet.has(edge.id);
 
-  const visited = new Set<string>();
-
-  for (let index = 0; index < queue.length; index++) {
-    const id = queue[index];
-    visited.add(id);
-
-    for (const child of children.get(id) ?? []) {
-      levels.set(
-        child,
-        Math.max(levels.get(child)!, levels.get(id)! + 1),
-      );
-
-      incoming.set(child, incoming.get(child)! - 1);
-
-      if (incoming.get(child) === 0) {
-        queue.push(child);
-      }
-    }
-  }
-
-  // Keep nodes visible if a future graph contains a cycle.
-  let fallbackLevel = Math.max(0, ...levels.values()) + 1;
-
-  for (const node of workflow.nodes) {
-    if (!visited.has(node.id)) {
-      levels.set(node.id, fallbackLevel++);
-    }
-  }
-
-  const rows = new Map<number, string[]>();
-
-  for (const node of workflow.nodes) {
-    const level = levels.get(node.id)!;
-    const row = rows.get(level) ?? [];
-    row.push(node.id);
-    rows.set(level, row);
-  }
-
-  return workflow.nodes.map((node) => {
-    const level = levels.get(node.id)!;
-    const row = rows.get(level)!;
-    const column = row.indexOf(node.id);
-
-    return {
-      id: node.id,
-      type: "policy",
-      data: {
-        label: node.label,
-        kind: node.type,
-      },
-      position: {
-        x: (column - (row.length - 1) / 2) * 340,
-        y: level * 190,
-      },
-    };
-  });
-}
-
-export function WorkflowGraph({ workflow }: WorkflowGraphProps) {
-  const nodes = useMemo(() => createLayout(workflow), [workflow]);
-
-  const edges: Edge[] = useMemo(
-    () =>
-      workflow.edges.map((edge) => ({
+      return {
         id: edge.id,
         source: edge.source,
         target: edge.target,
         label: edge.label,
         type: "smoothstep",
+        animated: isActive,
         style: {
-          stroke: "#818cf8",
-          strokeWidth: 2,
+          stroke: isActive ? "#38bdf8" : "#818cf8",
+          strokeWidth: isActive ? 3 : 2,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: "#818cf8",
+          color: isActive ? "#38bdf8" : "#818cf8",
         },
         labelStyle: {
-          fill: "#f4f4f5",
+          fill: isActive ? "#38bdf8" : "#f4f4f5",
           fontSize: 12,
           fontWeight: 600,
         },
@@ -234,16 +205,17 @@ export function WorkflowGraph({ workflow }: WorkflowGraphProps) {
         },
         labelBgPadding: [8, 5] as [number, number],
         labelBgBorderRadius: 5,
-      })),
-    [workflow.edges],
-  );
+      };
+    });
+  }, [workflow, activeEdgeIds]);
 
   return (
-    <div className="h-[600px] w-full overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950">
+    <div className={`${className} overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950`}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        onNodeClick={(_, node) => onNodeClick?.(node.id)}
         nodesDraggable={false}
         nodesConnectable={false}
         fitView

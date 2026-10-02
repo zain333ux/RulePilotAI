@@ -4,7 +4,7 @@
 ---
 
 # Current Objective
-Shared foundation review is verified on setup/parallel-readiness. Integrate and share this reviewed branch before members start from dev.
+Shared foundation reviewed and authorized for publication. Members start their assigned feature branches from origin/dev.
 
 ---
 
@@ -35,7 +35,7 @@ Shared foundation review is verified on setup/parallel-readiness. Integrate and 
 ---
 
 # In Progress
-- Implementation and local validation complete; integration/publishing remains with the integration lead.
+- Shared setup is complete. Member feature implementation begins from the published dev baseline.
 
 ---
 
@@ -131,3 +131,8 @@ Added fixture tests for exact page/section quotes, expected violation IDs/citati
 - git diff --check passed; .env.local/.env.production/.env.staging/.env.test are ignored. Every progress file has required sections; docs/fixtures decode as UTF-8.
 - External limitations: SQL not applied; Supabase, Gemini, webhook delivery and browser visual interaction not tested. Full engine remains Member 2 work. No unresolved shared hotel field decision.
 - Next: integration lead incorporates setup/parallel-readiness, shares main/dev baseline, then members branch from dev in separate clones/worktrees. No push or main merge performed by this review.
+
+
+## Session 5: shared baseline publication (2026-10-02)
+
+User requested publication. GitHub main is still 88bdbd5 and dev does not exist; no competing work to merge. npm test passed again. Publish review d2b45b3 plus the updated handoff to main/dev with a normal atomic push. No product code changed in this session. Next exact step: members fetch origin and create their assigned feature branch from origin/dev in separate clones/worktrees; submit work to dev.

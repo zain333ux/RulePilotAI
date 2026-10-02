@@ -6,11 +6,11 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 
 - Project: RulePilot AI.
 - Phase: shared foundation review complete; product features remain member milestones.
-- Current branch: setup/parallel-readiness; based on main commit 88bdbd5. Review branch is not merged into main. Confirm `git status -sb` when resuming.
+- Current branch: dev. Shared baseline includes review commit d2b45b3 and this publication handoff. main and dev start from the same accepted foundation. Confirm `git status -sb` when resuming.
 - Working architecture: one root Next.js 16.3.8 / React 19.2.8 / TypeScript / Tailwind v4 app, shadcn configuration, Supabase JS, React Flow, Lucide. SQL/AI integrations remain offline.
 - Completed: requested folder structure, frozen domain types including ADR-008 hotel fields, typed HTTP envelopes in types/api.ts, six rules and workflow/case fixtures, sample policy text, expected case results, route scaffolds, Supabase migration files, agent handoff and member starting instructions.
 - Unfinished: actual PDF upload/parsing, Gemini extraction, RAG/embeddings, persistence, complete deterministic engine, connected product UI, full workflow renderer, action generation and optional automation. Do not build unrelated features during setup.
-- Known blockers: no blocker to independent mock development. Live integration needs Supabase/Gemini credentials and migration execution. Shared review must be integrated before other clones receive these fixes.
+- Known blockers: no blocker to independent mock development. Live integration needs Supabase/Gemini credentials and migration execution. The shared baseline is available through origin/dev after publication; member branches should start there.
 - Known limitations: engine implements EXP-001/002/003/006 only and ignores generic operators; EXP-004/005 and input validation remain Member 2 work. Use static expected result fixtures for mock UI. Workflow fixture covers three threshold branches. Existing webhook helper is disconnected and needs timeout/failure tests. Browser visual QA and live database validation have not been performed in this review.
 - Decisions: LLM interprets policy; deterministic code executes rules. Member 1 owns every route. Workflow/case IDs bind rules and decisions to their documents. Server-only secret modules; private policy storage and server-only DB access baseline. See ADR-010 through ADR-012.
 - Environment: no credentials needed for build/tests. Server-only GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY and optional MAKE_WEBHOOK_URL; public NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY. All .env* ignored except .env.example.
@@ -21,8 +21,8 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 - Tests: npm test passes three existing engine fixtures, existing workflow structural check, six API scaffold tests and three new fixture integrity tests. A CRLF-sensitive citation test failed initially and was corrected to normalize line endings. These checks do not prove six-rule execution or browser interaction.
 - Validation: npm install server-only succeeded (0 audit vulnerabilities); lint/typecheck and production build passed. Initial install failed on sandbox network access and succeeded with permitted access. Production HTTP smoke checks passed: five page GETs returned 200 and all six API POSTs returned 501 with the expected error envelope. The first npm start invocation lost flags in PowerShell; direct Next CLI start succeeded.
 - Last verified working commands: npm run lint; npm run typecheck; npm test; npm run build; node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3100 (HTTP smoke checks passed).
-- Exact next task: integration lead merges/shares setup/parallel-readiness, then creates dev from accepted main. Members branch from dev in separate clones/worktrees and follow their first milestones.
-- Parallel readiness: yes for independent mock-based work after this baseline is shared; no claim that the live MVP is complete.
+- Exact next task: each member fetches origin, creates their assigned feature branch from origin/dev in a separate clone/worktree, and follows docs/progress/member-X.md. Use feature/platform, feature/ai-engine, feature/frontend or feature/workflow. Pull requests target dev.
+- Parallel readiness: yes for independent mock-based work from the published dev baseline; the live MVP remains unfinished.
 
 ## 2. Chronological Session Log
 
@@ -64,3 +64,8 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 - Corrected stale hotel-blocker notes, member activity claims, model assumptions and branch workflow. Updated ADR-010/011/012 and shared setup progress.
 - Verified install (0 audit vulnerabilities), lint (no warnings), typecheck, all tests, production build and HTTP smoke checks. Git diff whitespace check passed; domain contracts unchanged. No visual browser QA, Gemini calls, webhook delivery or Supabase execution claimed.
 - Review is isolated on setup/parallel-readiness. No changes pushed or merged into main during this review; the integration lead must share the accepted baseline before teammates pull it.
+
+
+### Session 5: Publish shared baseline (2026-10-02)
+
+User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no dev or competing changes. Re-ran npm test successfully. Publish this commit to main and dev together using a normal atomic push; no force push or history rewrite. Preserve setup/parallel-readiness as the review branch. Each teammate uses their own clone/worktree and starts their assigned feature branch at origin/dev.

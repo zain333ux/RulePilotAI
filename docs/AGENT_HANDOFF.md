@@ -81,3 +81,10 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Shared contracts, fixtures and API behavior unchanged.
 - Next: verify browser interactions, then add an AgentTimeline
   mock preview for waiting, running, completed and failed states.
+  ### Member 4 Timeline Preview — 2026-10-03
+
+- Added labelled mock timeline preview on /workflows.
+- All four states confirmed in browser.
+- Tests and production build passed.
+- No live processing or webhook dispatch added.
+- Next: lint verification, then controlled mock timeline simulation.

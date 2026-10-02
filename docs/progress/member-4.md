@@ -143,3 +143,27 @@ Branch from accepted dev into feature/workflow. Follow docs/MEMBER_OWNERSHIP.md 
 Verify the updated graph's labels, zoom, pan and selected-node
 highlight in the browser, confirm lint, then update shared handoff.
 Next implementation: AgentTimeline mock preview for all four states.
+## Session Update — 2026-10-03 — Timeline Preview
+
+### Completed
+- Added a clearly labelled mock AgentTimeline preview to /workflows.
+- Browser confirmed completed, running, waiting and failed states.
+- Reused AgentTimeline without changing its interface.
+
+### Files Changed
+- app/workflows/page.tsx
+- docs/progress/member-4.md
+- docs/AGENT_HANDOFF.md
+
+### Validation
+- npm test: passed.
+- npm run build: passed, including TypeScript check.
+- Latest standalone lint/typecheck output not yet recorded.
+
+### Limitations
+- Static state preview only; no live execution or webhook dispatch.
+- Parent-directory lockfile warning remains non-blocking.
+
+### Next Exact Step
+Confirm lint, then add a controlled mock timeline simulation
+with run, reset and simulated failure behavior.

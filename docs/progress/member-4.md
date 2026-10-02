@@ -110,3 +110,36 @@ WorkflowDefinition renders on app/workflows using the existing starter. Add brow
 
 ## Starting coordination
 Branch from accepted dev into feature/workflow. Follow docs/MEMBER_OWNERSHIP.md for shared files. Run lint, typecheck, tests and build before declaring the milestone complete; update this file after each meaningful step.
+## Session Update — 2026-10-03 — Custom Workflow Renderer
+
+### Completed
+- Connected WorkflowGraph to /workflows using mocks/workflow.json.
+- Added distinct styles and icons for all five node types.
+- Added branching layout, arrow markers and readable edge labels.
+- Added selected-node styling and retained zoom/pan controls.
+- Shared contracts and fixtures unchanged.
+
+### Files Changed
+- app/workflows/page.tsx
+- components/workflow/WorkflowGraph.tsx
+- docs/progress/member-4.md
+
+### Tests and Results
+- npm test: passed engine examples, workflow structure,
+  fixture integrity and API scaffold checks.
+- npm run build: passed, including TypeScript validation.
+- Latest standalone lint/typecheck: commands reported run;
+  output not yet recorded.
+- Browser: basic graph rendering confirmed earlier;
+  updated custom-node interactions need verification.
+
+### Blockers and Limitations
+- Non-blocking parent-directory package-lock warning.
+- Tests validate workflow data, not rendered browser interactions.
+- APIs remain 501 scaffolds; live integration is pending.
+- Execution animation and webhook testing are pending.
+
+### Next Exact Step
+Verify the updated graph's labels, zoom, pan and selected-node
+highlight in the browser, confirm lint, then update shared handoff.
+Next implementation: AgentTimeline mock preview for all four states.

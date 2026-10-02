@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft, GitBranch } from "lucide-react";
 import mockWorkflow from "@/mocks/workflow.json";
+import { WorkflowGraph } from "@/components/workflow/WorkflowGraph";
+import type { WorkflowDefinition } from "@/types/contracts";
+
+const workflow = mockWorkflow as WorkflowDefinition;
 
 export default function WorkflowsPage() {
   return (
@@ -41,18 +45,8 @@ export default function WorkflowsPage() {
             </span>
           </div>
 
-          <div className="my-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-            {mockWorkflow.nodes.slice(0, 4).map((node) => (
-              <div
-                key={node.id}
-                className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/60 space-y-1"
-              >
-                <span className="text-[10px] uppercase font-mono tracking-wider text-indigo-400">
-                  {node.type}
-                </span>
-                <p className="text-xs font-medium text-zinc-200">{node.label}</p>
-              </div>
-            ))}
+          <div className="my-8">
+            <WorkflowGraph workflow={workflow} />
           </div>
 
           <div className="border-t border-zinc-800/80 pt-4 text-xs text-zinc-500 flex items-center justify-between">

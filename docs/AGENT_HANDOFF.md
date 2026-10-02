@@ -69,3 +69,15 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 ### Session 5: Publish shared baseline (2026-10-02)
 
 User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no dev or competing changes. Re-ran npm test successfully. Publish this commit to main and dev together using a normal atomic push; no force push or history rewrite. Preserve setup/parallel-readiness as the review branch. Each teammate uses their own clone/worktree and starts their assigned feature branch at origin/dev.
+### Member 4 Workflow Update — 2026-10-03
+
+- Implemented locally on feature/workflow; not yet merged into dev.
+- Connected WorkflowGraph to /workflows using existing mock data.
+- Added five custom node designs, branching layout, arrow labels
+  and selected-node styling.
+- npm test, npm run build and npm run lint passed.
+- Production build TypeScript check passed.
+- Updated browser interaction checks still need confirmation.
+- Shared contracts, fixtures and API behavior unchanged.
+- Next: verify browser interactions, then add an AgentTimeline
+  mock preview for waiting, running, completed and failed states.

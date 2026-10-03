@@ -1,7 +1,8 @@
 import "server-only";
 import { Citation } from "@/types/contracts";
 import { generateEmbedding } from "@/lib/embeddings/generator";
-import { getAdminSupabase, isServerSupabaseConfigured } from "@/lib/supabase/server";
+import { getAdminSupabase } from "@/lib/supabase/admin";
+import { isServerSupabaseConfigured } from "@/lib/supabase/server";
 
 export interface RetrievedChunk {
   id: string;

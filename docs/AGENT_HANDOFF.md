@@ -5,24 +5,24 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 ## CURRENT STATE
 
 - Project: RulePilot AI.
-- Phase: shared foundation review complete; product features remain member milestones.
-- Current branch: shared baseline is `dev`; active Member 1 work is on `feature/platform`. Confirm `git status -sb` when resuming.
-- Working architecture: one root Next.js 16.3.8 / React 19.2.8 / TypeScript / Tailwind v4 app, shadcn configuration, Supabase JS, React Flow, and Lucide. Supabase upload/persistence and the case/action APIs are live; PDF/AI route integration remains unfinished.
-- Completed: requested folder structure, frozen domain types including ADR-008 hotel fields, typed HTTP envelopes in types/api.ts, six rules and workflow/case fixtures, live Supabase schema and restricted `policies` bucket, separated Supabase clients, real PDF upload, server-only repositories, atomic rule/chunk replacement, authoritative case execution, and deterministic action generation.
-- Unfinished: the document-processing, rule-extraction, and workflow-generation routes; connected product UI; full workflow renderer; and optional automation.
-- Known blockers: no blocker to case/action API development. The remaining three 501 routes need the accepted Member 2 exports from `origin/feature/ai-engine`; Gemini integration also needs its server credential.
+- Phase: backend API integration complete in code; live provider-dependent verification remains.
+- Current branch: `integration/platform-ai`, created from `feature/platform` and merged with `origin/feature/ai-engine`. Confirm `git status -sb` when resuming.
+- Working architecture: one root Next.js 16.3.8 application. All six routes use server-side Storage/repositories and Member 2 domain exports; the three policy-pipeline routes now replace their 501 scaffolds.
+- Completed: shared foundation, live Supabase/storage, repositories, atomic rule/chunk replacement, upload, policy processing wiring, page-aware rule extraction wiring, workflow persistence, case execution, action generation, and credential-free route coverage.
+- Unfinished: live Gemini-dependent process/extract verification; connected product UI; workflow renderer; and optional automation.
+- Known blockers: `GEMINI_API_KEY` is empty in `.env.local`. Live upload succeeded for document `4e50440c-ff93-4943-82f9-77bb72cb4cb4`, then processing returned safe HTTP 503. No downstream data was fabricated.
 - Known limitations: webhook dispatch remains disabled and `webhookTriggered` is always false. Case creation and result insertion are separate repository operations, so a result-insert failure can leave a persisted case without a result; the route returns 500 and logs the case ID. Use static expected result fixtures for mock UI until branches are integrated.
 - Decisions: LLM interprets policy; deterministic code executes rules. Member 1 owns every route. Workflow/case IDs bind rules and decisions to their documents. Server-only secret modules; private policy storage and server-only DB access baseline. See ADR-010 through ADR-012.
 - Environment: no credentials needed for build/unit tests. Server-only GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY and optional MAKE_WEBHOOK_URL; public NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY. All `.env*` files are ignored except `.env.example`. Supabase credentials are configured locally and the live upload was manually verified; never print or commit them.
 - Database: all four repository migrations were executed through the SQL Editor in the live `RulePilotAI` project on 2026-10-03. Live SQL confirmed all six tables, expected foreign keys and constraints, pgvector 0.8.2 in `extensions`, `vector(768)`, the atomic rule and chunk RPCs, RLS, and service-role-only access. Both replacement RPCs are `SECURITY INVOKER` and unavailable to anon/authenticated. The private `policies` bucket accepts PDFs up to 4 MiB. SQL Editor execution is not listed in dashboard migration history. Embedding model selection remains Member 2 work.
-- API: document upload returns HTTP 201; case execution and action generation return HTTP 200 using authoritative persisted data. Document processing, rule extraction, and workflow generation remain explicit 501 scaffolds.
+- API: all six routes are implemented and use authoritative server data. Provider-dependent routes fail closed with structured errors.
 - Contract status: types/contracts.ts unchanged by this review. Additive types/api.ts formalizes transport envelopes; changes recorded in ADR-010. Mock citations are authored fictional demo references, never live PDF evidence.
-- Packages: existing dependencies retained; added server-only (0.0.1) for framework-enforced import boundaries. package-lock.json updated.
-- Tests: focused mocked tests cover upload, repositories, 14 case-execution scenarios, and 8 action-generation scenarios. The separate live repository smoke remains excluded from `npm test`. Three unfinished endpoints retain 501 coverage.
-- Validation: typecheck, lint, 48 platform tests, 54 full-suite tests, and production build passed on 2026-10-03. Live SQL previously verified both atomic RPC signatures and grants.
+- Packages: existing dependencies retained; `unpdf` 1.7.x is included for Member 2's digital PDF parser.
+- Tests: credential-free tests cover all six routes, repositories, domain rules, fixtures, and workflow structure. The three new routes add 26 focused tests.
+- Validation: typecheck, lint, 74 platform tests, all 5 rule/RAG test files, 80 full-suite tests, and production build passed. Live upload passed; processing is blocked by missing Gemini credentials.
 - Last verified working commands: `npm run typecheck`; `npm run lint`; `npm run test:platform`; `npm test`; `npm run build`.
-- Exact next task: integrate Member 2's `processPolicyPdf` with private Storage download and `replaceDocumentChunks` in `/api/documents/process` after the AI branch is accepted. Pull requests target `dev`.
-- Parallel readiness: yes for independent mock-based work from the published dev baseline; the live MVP remains unfinished.
+- Exact next task: configure `GEMINI_API_KEY`, restart Next.js, and rerun the complete live backend flow; then record real pipeline results.
+- Parallel readiness: yes after integration-lead review; live Gemini verification is still required before claiming the backend MVP end to end.
 
 ## 2. Chronological Session Log
 
@@ -136,4 +136,12 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
   - Added live AI smoke test script (`scripts/smoke-ai.ts`) executing 12-step verification against real policy PDFs.
   - Added unit test suites (`tests/rules/pdf-parser.test.ts`, `tests/rules/workflow.test.ts`, updated `tests/rules/chunker.test.ts`, `tests/rules/ai.test.ts`, and `tests/rules/engine.test.ts`).
   - Verified `npm run typecheck`, `npm run lint`, `npm run test:rules`, `npm test`, and `npm run build` all pass with 0 errors. Shared contracts (`types/contracts.ts`) and API routes remained untouched.
+
+### Session 13: Platform and AI branch integration (2026-10-03)
+
+- Created `integration/platform-ai` from Member 1's branch and merged `origin/feature/ai-engine` without rewriting history.
+- Preserved Member 1 platform work and Member 2's parser, embeddings, extraction, engine, and workflow generator.
+- Replaced the final three 501 scaffolds with routes backed by private Storage, atomic repositories, and Member 2 exports.
+- Added 26 credential-free route tests; required local validation passed.
+- Live final-policy upload succeeded as document `4e50440c-ff93-4943-82f9-77bb72cb4cb4`; processing failed closed with 503 because `GEMINI_API_KEY` is empty.
 

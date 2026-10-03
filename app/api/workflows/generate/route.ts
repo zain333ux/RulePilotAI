@@ -1,12 +1,20 @@
-import { notImplemented } from "@/lib/api/not-implemented";
+import { getDocumentById, getPolicyRulesByDocumentId, saveWorkflow } from "@/lib/repositories";
+import { generateWorkflowFromRules } from "@/lib/rules/workflow";
+import { handleGenerateWorkflow } from "@/lib/workflows/generate";
+
+export const runtime = "nodejs";
 
 /**
  * POST /api/workflows/generate
  * Owned by Member 1 (HTTP routes); domain libraries keep their documented owners.
- * Scaffold only — returns HTTP 501 until workflow generation exists.
- * Use mocks/workflow.json for React Flow development.
+ * Loads authoritative persisted rules, generates a deterministic workflow, and
+ * persists the shared WorkflowDefinition for Member 4's renderer.
  */
 export async function POST(request: Request) {
-  void request;
-  return notImplemented("POST /api/workflows/generate", "Member 1 (Platform / Backend)");
+  return handleGenerateWorkflow(request, {
+    getDocumentById,
+    getPolicyRulesByDocumentId,
+    generateWorkflowFromRules,
+    saveWorkflow,
+  });
 }

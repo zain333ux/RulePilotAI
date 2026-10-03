@@ -1,6 +1,6 @@
 # API contracts
 
-All six routes currently return HTTP 501. No upload, persistence, AI processing or case execution occurs. The interfaces in `types/api.ts` are the agreed target HTTP envelopes; `types/contracts.ts` contains the frozen domain objects. This foundation correction is recorded in ADR-010.
+All six routes are implemented on `integration/platform-ai`. The interfaces in `types/api.ts` are the HTTP envelopes; `types/contracts.ts` contains the frozen domain objects.
 
 ## Ownership and common behavior
 
@@ -68,4 +68,4 @@ Requests and responses use JSON except PDF upload. Identifiers in live mode are 
 
 ## Independent development
 
-Use the JSON case/rule/workflow fixtures and `mocks/case-results.json` for UI states. The document-processing, rule-extraction, and workflow-generation endpoints still return 501. Case execution and action generation have real success/error tests and no longer use scaffold assertions.
+Use the JSON case/rule/workflow fixtures and `mocks/case-results.json` for credential-free UI work. Every route now has real success/error coverage. Provider-dependent processing and extraction return structured failures when credentials or upstream services are unavailable.

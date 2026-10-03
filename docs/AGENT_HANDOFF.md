@@ -267,3 +267,11 @@ pm run typecheck\, and \
 pm run build\. 
 - Frontend is now fully production-ready and fully integrated against the deterministic AI engine, prepared for E2E testing.
 
+
+### Session 19: Member 3 Final Polish & Bug Fixes (2026-10-03)
+- Branch: feature/frontend-final
+- Agent: Member 3
+- Fixed a critical case execution bug: updated app/cases/page.tsx to correctly pass session.workflowId instead of documentId.
+- Fixed session persistence for cases.
+- Enabled next-action generation in app/cases/page.tsx.
+- Applied further polish to the UI, cleaned up copy, passed all lint, build, and test steps, and pushed to feature/frontend-final.

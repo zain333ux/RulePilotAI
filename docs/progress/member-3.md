@@ -96,9 +96,10 @@ Integrate the frontend with the final technical baseline (origin/integration/fin
 ---
 
 # Next Exact Steps
-- Awaiting final repository integration into main branch by Integration Lead.
+- Final suite validations are complete, the work has been pushed to `feature/frontend-final`, and it's ready for Member 1/Integration Lead to merge to main.
 
 ---
 
 # Session History
 - **Frontend Integration Session:** Merged previous frontend work with the final technical baseline, implemented real API wiring, standardized state management, and applied high-end visual polish across all core views. Removed all hard-coded mock workflows and cases to respect the true backend logic.
+- **Final Polish Session:** Fixed the critical case execution bug (`workflowId` instead of `documentId`), enabled next-action generation, polished the UI, implemented a mobile hamburger menu, cleaned up the copy, passed all lint, build, and test steps, and pushed to `feature/frontend-final` branch.

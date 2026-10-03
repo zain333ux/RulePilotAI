@@ -1,4 +1,4 @@
-﻿# RulePilot AI agent handoff
+# RulePilot AI agent handoff
 
 Read immediately after the PRD, then complete the playbook/development rules/member progress checklist before coding. Root AGENTS.md points here.
 
@@ -268,10 +268,12 @@ pm run build\.
 - Frontend is now fully production-ready and fully integrated against the deterministic AI engine, prepared for E2E testing.
 
 
-### Session 19: Member 3 Final Polish & Bug Fixes (2026-10-03)
-- Branch: feature/frontend-final
+### Session 19: Member 3 Final Polish & Bug Fixes (2026-10-04)
+- Branch: `feature/frontend-final`
 - Agent: Member 3
-- Fixed a critical case execution bug: updated app/cases/page.tsx to correctly pass session.workflowId instead of documentId.
-- Fixed session persistence for cases.
-- Enabled next-action generation in app/cases/page.tsx.
-- Applied further polish to the UI, cleaned up copy, passed all lint, build, and test steps, and pushed to feature/frontend-final.
+- Fixed a critical case execution bug: updated `app/cases/page.tsx` to correctly pass `session.workflowId` instead of `documentId`.
+- Session State: Made session persistence the single source of truth for cases. Results and generated actions are correctly hydrated from `sessionStorage` on navigation. `latestAction` and `latestTemplate` are correctly cleared when a new case evaluation begins.
+- Action Generation: Refactored next-action generation to run independently of violations so that approved cases also receive recommendations. Added copy controls for actions and templates.
+- Evidence UI: Changed violation cards to expose the required action directly on the card, display page and section references prominently, and wired up `violation.citation` directly to the `CitationModal`.
+- Copy Refinements: Replaced technical jargon (Nodes, Edges, Live Graph, etc.) with product-friendly phrasing (Steps, Connections, Decision Workflow, Current Policy) across the Dashboard and Landing Page.
+- Next Steps: Code pushed to `feature/frontend-final` with all automated suites passing. Ready for `integration/review` -> `dev` -> `main`.

@@ -33,7 +33,7 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-[42px] sm:text-[52px] md:text-[58px] lg:whitespace-nowrap font-bold text-white tracking-tight leading-[1.1]">
-            Turn company rules into actionable execution.
+            Turn company policies into clear, explainable decisions.
           </h1>
         </div>
 
@@ -107,7 +107,7 @@ export default function HomePage() {
             </div>
             <h3 className="text-[17px] font-bold text-white mb-3 tracking-wide">Grounded Rule Extraction</h3>
             <p className="text-[15px] text-[#8e98ac] leading-[1.6]">
-              Seamlessly convert complex, unstructured policy documents into precise, actionable rulesets powered by advanced enterprise AI.
+              Seamlessly convert complex, unstructured policy documents into precise, actionable rulesets through Policy Understanding.
             </p>
           </div>
 
@@ -179,7 +179,7 @@ export default function HomePage() {
                  </div>
                </div>
             </div>
-            <h3 className="text-[17px] font-bold text-white mb-3 tracking-wide">Policy-Driven Decision Engine</h3>
+            <h3 className="text-[17px] font-bold text-white mb-3 tracking-wide">Consistent Decisions</h3>
             <p className="text-[15px] text-[#8e98ac] leading-[1.6]">
               Deploy auditable decision-making pipelines that guarantee consistent compliance and reliable outcomes based directly on your rules.
             </p>

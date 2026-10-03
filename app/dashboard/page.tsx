@@ -84,7 +84,7 @@ export default function DashboardPage() {
               <FileText className="w-5 h-5 text-[#4bbabc]" />
             </div>
             <div className="mt-4 text-4xl font-extrabold text-white">{activePolicies}</div>
-            <div className="mt-2 text-xs text-slate-500 font-medium">Currently loaded in engine</div>
+            <div className="mt-2 text-xs text-slate-500 font-medium">Current Policy</div>
           </div>
 
           <div className="p-6 rounded-2xl border border-[#2b5a6c]/30 bg-[#0d1b2a]/40 backdrop-blur-md shadow-[0_0_20px_rgba(43,90,108,0.1)]">
@@ -98,11 +98,11 @@ export default function DashboardPage() {
 
           <div className="p-6 rounded-2xl border border-[#2b5a6c]/30 bg-[#0d1b2a]/40 backdrop-blur-md shadow-[0_0_20px_rgba(43,90,108,0.1)]">
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-sm font-bold tracking-wide">Workflow Nodes</span>
+              <span className="text-sm font-bold tracking-wide">Workflow Steps</span>
               <GitFork className="w-5 h-5 text-amber-400" />
             </div>
             <div className="mt-4 text-4xl font-extrabold text-white">{session.workflow?.nodes.length || 0}</div>
-            <div className="mt-2 text-xs text-slate-500 font-medium">Visual graph elements</div>
+            <div className="mt-2 text-xs text-slate-500 font-medium">Workflow Steps</div>
           </div>
 
           <div className="p-6 rounded-2xl border border-[#2b5a6c]/30 bg-[#0d1b2a]/40 backdrop-blur-md shadow-[0_0_20px_rgba(43,90,108,0.1)]">
@@ -198,15 +198,15 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between p-4 rounded-xl bg-[#122336]/50 border border-[#2b5a6c]/20">
                     <div className="text-center flex-1 border-r border-[#2b5a6c]/30">
                       <div className="text-2xl font-black text-amber-400">{session.workflow?.nodes.length}</div>
-                      <div className="text-xs text-slate-400 mt-1 uppercase tracking-wider">Nodes</div>
+                      <div className="text-xs text-slate-400 mt-1 uppercase tracking-wider">Steps</div>
                     </div>
                     <div className="text-center flex-1">
                       <div className="text-2xl font-black text-amber-400">{session.workflow?.edges.length}</div>
-                      <div className="text-xs text-slate-400 mt-1 uppercase tracking-wider">Paths</div>
+                      <div className="text-xs text-slate-400 mt-1 uppercase tracking-wider">Connections</div>
                     </div>
                   </div>
                   <Link href="/workflows" className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 hover:border-amber-500/40 rounded-xl text-sm font-bold transition-all">
-                    Explore Visual Graph <ArrowRight className="w-4 h-4" />
+                    Explore Decision Workflow <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
               ) : (

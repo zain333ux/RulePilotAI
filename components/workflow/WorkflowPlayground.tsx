@@ -38,7 +38,7 @@ export function WorkflowPlayground() {
             <GitBranch className="h-6 w-6 text-[#4bbabc]" />
             <span>{workflowName}</span>
             <div className="flex items-center gap-1 ml-3 px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs rounded-full font-medium">
-              <Sparkles className="w-3 h-3" /> Live Graph
+              <Sparkles className="w-3 h-3" /> Decision Workflow
             </div>
           </div>
           <p className="text-sm text-slate-400 max-w-2xl">
@@ -54,9 +54,9 @@ export function WorkflowPlayground() {
             Execute Test Cases <ArrowRight className="w-4 h-4" />
           </Link>
           <span className="rounded-xl border border-[#2b5a6c]/50 bg-[#050a10] px-4 py-2 text-sm font-mono text-slate-300 shadow-inner flex items-center gap-3">
-            <span><strong className="text-amber-400">{session.workflow.nodes.length}</strong> Nodes</span>
+            <span><strong className="text-amber-400">{session.workflow.nodes.length}</strong> Steps</span>
             <span className="w-px h-4 bg-[#2b5a6c]/50" />
-            <span><strong className="text-amber-400">{session.workflow.edges.length}</strong> Edges</span>
+            <span><strong className="text-amber-400">{session.workflow.edges.length}</strong> Connections</span>
           </span>
         </div>
       </div>

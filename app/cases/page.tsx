@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, AlertCircle, XCircle, ShieldAlert, FileText, ArrowRight, Activity, Zap } from "lucide-react";
 import { CaseForm } from "@/components/cases/CaseForm";
-import { ExpenseCase, CaseResult, Citation } from "@/types/contracts";
+import { ExpenseCase, Citation } from "@/types/contracts";
 import { api } from "@/lib/client/rulepilot-api";
 import { useSession } from "@/components/session/SessionProvider";
 import { CitationModal } from "@/components/policy/CitationModal";
@@ -13,16 +13,20 @@ import { normalizeApiError } from "@/lib/client/error";
 export default function CasesPage() {
   const { session, updateSession } = useSession();
   const [isEvaluating, setIsEvaluating] = useState(false);
-  const [result, setResult] = useState<CaseResult | null>(null);
+  const result = session.latestCaseResult || null;
   const [error, setError] = useState<string | null>(null);
 
   // Next Action state
   const [isGeneratingAction, setIsGeneratingAction] = useState(false);
-  const [actionResult, setActionResult] = useState<{ action: string; template: string } | null>(null);
+  const actionResult = session.latestAction && session.latestTemplate 
+    ? { action: session.latestAction, template: session.latestTemplate } 
+    : null;
 
   // Citation Modal state
   const [citationModalOpen, setCitationModalOpen] = useState(false);
   const [selectedCitation, setSelectedCitation] = useState<Citation | null>(null);
+
+
 
   const handleEvaluate = async (formData: ExpenseCase) => {
     if (!session.workflowId) {
@@ -32,17 +36,21 @@ export default function CasesPage() {
 
     setIsEvaluating(true);
     setError(null);
-    setResult(null);
-    setActionResult(null);
+    updateSession({
+      latestCaseResult: undefined,
+      latestAction: undefined,
+      latestTemplate: undefined
+    });
 
     try {
       const evaluationResult = await api.cases.execute(session.workflowId, formData);
-      setResult(evaluationResult.caseResult);
       
-      // Update session with latest results for Dashboard
+      // Update session with latest results for Dashboard and clear old actions
       updateSession({
         latestCaseId: evaluationResult.caseId,
-        latestCaseResult: evaluationResult.caseResult
+        latestCaseResult: evaluationResult.caseResult,
+        latestAction: undefined,
+        latestTemplate: undefined
       });
     } catch (err: unknown) {
       setError(normalizeApiError(err, "Failed to evaluate case"));
@@ -59,10 +67,6 @@ export default function CasesPage() {
     
     try {
       const res = await api.actions.generate(session.latestCaseId);
-      setActionResult({
-        action: res.action,
-        template: res.template
-      });
       // Save action to session
       updateSession({
         latestAction: res.action,
@@ -75,11 +79,21 @@ export default function CasesPage() {
     }
   };
 
-  const handleOpenCitation = (ruleId: string) => {
-    if (!session.rules) return;
-    const rule = session.rules.find((r) => r.id === ruleId);
-    if (rule && rule.citation) {
-      setSelectedCitation(rule.citation);
+  const handleCopyAction = () => {
+    if (actionResult?.action) {
+      navigator.clipboard.writeText(actionResult.action);
+    }
+  };
+
+  const handleCopyTemplate = () => {
+    if (actionResult?.template) {
+      navigator.clipboard.writeText(actionResult.template);
+    }
+  };
+
+  const handleOpenCitation = (citation: Citation | undefined) => {
+    if (citation) {
+      setSelectedCitation(citation);
       setCitationModalOpen(true);
     }
   };
@@ -203,9 +217,9 @@ export default function CasesPage() {
                      {getStatusIcon(result.status)}
                   </div>
                   <h3 className="text-2xl font-black text-white tracking-wider mb-2">
-                    {result.status.replace("_", " ")}
+                    {result.status === "APPROVED" ? "Case Approved" : result.status === "ACTION_REQUIRED" ? "Action Required" : "Case Rejected"}
                   </h3>
-                  <p className="text-sm text-slate-400">Processed by RulePilot</p>
+                  <p className="text-sm text-slate-400">Evaluated against the active policy.</p>
                 </div>
 
                 {result.violations.length > 0 ? (
@@ -218,54 +232,38 @@ export default function CasesPage() {
                       {result.violations.map((violation, idx) => (
                         <div key={idx} className="p-5 rounded-2xl bg-rose-500/5 border border-rose-500/20 shadow-inner group hover:border-rose-500/40 transition-colors">
                           <div className="flex items-center justify-between mb-3">
-                             <button 
-                               onClick={() => handleOpenCitation(violation.ruleId)}
-                               className="font-mono text-xs font-bold bg-rose-500/20 text-rose-300 hover:text-white hover:bg-rose-500/40 px-3 py-1 rounded-md border border-rose-500/30 transition-colors cursor-pointer flex items-center gap-1"
-                             >
+                             <span className="font-mono text-xs font-bold bg-rose-500/20 text-rose-300 px-3 py-1 rounded-md border border-rose-500/30">
                                {violation.ruleId}
-                               <FileText className="w-3 h-3 ml-1" />
-                             </button>
+                             </span>
                              <span className="text-xs text-rose-500 font-bold uppercase tracking-wider">Failed</span>
                           </div>
-                          <p className="text-sm text-rose-200 leading-relaxed">{violation.message}</p>
+                          <p className="text-sm text-rose-200 leading-relaxed mb-4">{violation.message}</p>
+                          
+                          <div className="space-y-3 bg-[#0a0f18]/50 p-4 rounded-xl border border-rose-500/10">
+                            <div>
+                              <p className="text-xs text-rose-500/70 font-bold uppercase tracking-wider mb-1">Required Action</p>
+                              <p className="text-sm text-rose-200">{violation.action || "No specific action defined."}</p>
+                            </div>
+                            
+                            {violation.citation && (
+                              <div>
+                                <p className="text-xs text-rose-500/70 font-bold uppercase tracking-wider mb-1">Source Reference</p>
+                                <div className="flex items-center justify-between">
+                                  <p className="text-xs text-slate-300">
+                                    Page {violation.citation.page} {violation.citation.section && `· ${violation.citation.section}`}
+                                  </p>
+                                  <button 
+                                    onClick={() => handleOpenCitation(violation.citation)}
+                                    className="text-xs font-bold text-[#4bbabc] hover:text-[#5fd4d6] transition-colors flex items-center gap-1 bg-[#4bbabc]/10 hover:bg-[#4bbabc]/20 px-2 py-1 rounded-md"
+                                  >
+                                    View policy evidence <ArrowRight className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       ))}
-                    </div>
-
-                    {/* Next Action Generation for violations */}
-                    <div className="pt-6 border-t border-[#2b5a6c]/30 mt-6">
-                      {!actionResult ? (
-                        <button
-                          onClick={handleGenerateAction}
-                          disabled={isGeneratingAction}
-                          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 rounded-xl font-bold transition-all disabled:opacity-50"
-                        >
-                          {isGeneratingAction ? (
-                            <>
-                              <Activity className="w-4 h-4 animate-spin" /> Generating Recommended Action...
-                            </>
-                          ) : (
-                            <>
-                              <Zap className="w-4 h-4" /> Generate Recommended Next Action
-                            </>
-                          )}
-                        </button>
-                      ) : (
-                        <div className="space-y-4 animate-in fade-in duration-500">
-                          <div className="flex items-center gap-2 text-indigo-400 mb-2">
-                            <Zap className="w-5 h-5" />
-                            <h4 className="font-bold uppercase tracking-widest text-sm">Recommended Next Action</h4>
-                          </div>
-                          <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-                            <p className="text-sm font-semibold text-indigo-200">{actionResult.action}</p>
-                          </div>
-                          {actionResult.template && (
-                            <div className="p-4 rounded-xl bg-[#050a10] border border-[#2b5a6c]/30">
-                              <p className="text-xs font-mono text-slate-300 whitespace-pre-wrap">{actionResult.template}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
                   </div>
                 ) : (
@@ -275,6 +273,56 @@ export default function CasesPage() {
                     <p className="text-sm text-emerald-500/80">The submitted case fully complies with the active policy rules.</p>
                   </div>
                 )}
+
+                {/* Next Action Generation for all statuses */}
+                <div className="pt-6 border-t border-[#2b5a6c]/30 mt-6">
+                  {!actionResult ? (
+                    <button
+                      onClick={handleGenerateAction}
+                      disabled={isGeneratingAction}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 rounded-xl font-bold transition-all disabled:opacity-50"
+                    >
+                      {isGeneratingAction ? (
+                        <>
+                          <Activity className="w-4 h-4 animate-spin" /> Generating Recommended Action...
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-4 h-4" /> Generate Recommended Next Action
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <div className="space-y-4 animate-in fade-in duration-500">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 text-indigo-400">
+                          <Zap className="w-5 h-5" />
+                          <h4 className="font-bold uppercase tracking-widest text-sm">Recommended Next Action</h4>
+                        </div>
+                        <button onClick={handleCopyAction} className="text-xs text-indigo-300 hover:text-white bg-indigo-500/20 px-3 py-1 rounded border border-indigo-500/30 transition-colors">
+                          Copy Action
+                        </button>
+                      </div>
+                      <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                        <p className="text-sm font-semibold text-indigo-200">{actionResult.action}</p>
+                      </div>
+                      
+                      {actionResult.template && (
+                        <div className="mt-6">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-bold uppercase tracking-widest text-sm text-slate-400">Suggested Message</h4>
+                            <button onClick={handleCopyTemplate} className="text-xs text-slate-300 hover:text-white bg-[#0d1b2a] px-3 py-1 rounded border border-[#2b5a6c]/30 transition-colors">
+                              Copy Message
+                            </button>
+                          </div>
+                          <div className="p-4 rounded-xl bg-[#050a10] border border-[#2b5a6c]/30">
+                            <p className="text-xs font-mono text-slate-300 whitespace-pre-wrap">{actionResult.template}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

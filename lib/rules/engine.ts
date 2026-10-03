@@ -22,28 +22,54 @@
  */
 import { ExpenseCase, PolicyRule, CaseResult, RuleViolation, RuleOperator, CaseStatus } from "@/types/contracts";
 
+/**
+ * Compare two values strictly according to RuleOperator.
+ * Avoids JavaScript loose coercion.
+ */
 export function evaluateOperator(
   left: number | string | boolean,
   operator: RuleOperator,
   right: number | string | boolean
 ): boolean {
   switch (operator) {
-    case ">": return typeof left === "number" && typeof right === "number" && left > right;
-    case "<": return typeof left === "number" && typeof right === "number" && left < right;
-    case ">=": return typeof left === "number" && typeof right === "number" && left >= right;
-    case "<=": return typeof left === "number" && typeof right === "number" && left <= right;
-    case "==": return left === right;
-    case "!=": return left !== right;
+    case ">":
+      return typeof left === "number" && typeof right === "number" && left > right;
+    case "<":
+      return typeof left === "number" && typeof right === "number" && left < right;
+    case ">=":
+      return typeof left === "number" && typeof right === "number" && left >= right;
+    case "<=":
+      return typeof left === "number" && typeof right === "number" && left <= right;
+    case "==":
+      return left === right;
+    case "!=":
+      return left !== right;
+    default:
+      return false;
   }
 }
 
+/**
+ * Calculate difference in calendar days between two ISO date strings (endDate - startDate).
+ */
 export function calculateDaysBetween(startDateStr: string, endDateStr: string): number {
   const start = new Date(startDateStr);
   const end = new Date(endDateStr);
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) return NaN;
-  return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return NaN;
+  }
+  const diffMs = end.getTime() - start.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
+/**
+ * Evaluates an ExpenseCase deterministically against an array of PolicyRule items.
+ *
+ * Status precedence:
+ * - 0 violations => "APPROVED"
+ * - Any hard cap (EXP-004) or deadline (EXP-005) violation => "REJECTED"
+ * - Missing approvals / documentation (EXP-001, EXP-002, EXP-003, EXP-006) => "ACTION_REQUIRED"
+ */
 export function evaluateExpenseCase(
   expenseCase: ExpenseCase,
   rules: PolicyRule[]
@@ -51,7 +77,7 @@ export function evaluateExpenseCase(
   const violations: RuleViolation[] = [];
 
   for (const rule of rules) {
-    // Check EXP-001: Receipt requirement
+    // Check EXP-001: Receipt requirement (amount > 5,000 requires receipt)
     if (rule.id === "EXP-001" && rule.field === "amount") {
       const threshold = Number(rule.value);
       if (evaluateOperator(expenseCase.amount, rule.operator, threshold) && !expenseCase.receipt) {
@@ -64,7 +90,7 @@ export function evaluateExpenseCase(
       }
     }
 
-    // Check EXP-002: Manager approval requirement
+    // Check EXP-002: Manager approval requirement (amount > 50,000 requires managerApproval)
     if (rule.id === "EXP-002" && rule.field === "amount") {
       const threshold = Number(rule.value);
       if (evaluateOperator(expenseCase.amount, rule.operator, threshold) && !expenseCase.managerApproval) {
@@ -77,7 +103,7 @@ export function evaluateExpenseCase(
       }
     }
 
-    // Check EXP-003: Finance approval requirement
+    // Check EXP-003: Finance approval requirement (amount > 100,000 requires financeApproval)
     if (rule.id === "EXP-003" && rule.field === "amount") {
       const threshold = Number(rule.value);
       if (evaluateOperator(expenseCase.amount, rule.operator, threshold) && !expenseCase.financeApproval) {
@@ -90,6 +116,8 @@ export function evaluateExpenseCase(
       }
     }
 
+    // Check EXP-004: Hotel daily rate cap (hotelNightlyRate > 25,000 is a policy violation)
+    // ADR-008: hotelNightlyRate is optional; only evaluate when provided. Never derive from amount/nights.
     if (rule.id === "EXP-004" && rule.field === "hotelNightlyRate") {
       if (expenseCase.hotelNightlyRate !== undefined && expenseCase.hotelNightlyRate !== null) {
         const cap = Number(rule.value);
@@ -104,6 +132,7 @@ export function evaluateExpenseCase(
       }
     }
 
+    // Check EXP-005: Submission timeliness window (claims must be submitted within 14 calendar days)
     if (rule.id === "EXP-005") {
       if (expenseCase.expenseDate && expenseCase.submissionDate) {
         const days = calculateDaysBetween(expenseCase.expenseDate, expenseCase.submissionDate);
@@ -132,16 +161,24 @@ export function evaluateExpenseCase(
     }
   }
 
+  // Determine overall status with REJECTED taking precedence over ACTION_REQUIRED
   let status: CaseStatus = "APPROVED";
   if (violations.length > 0) {
-    status = violations.some((violation) => violation.ruleId === "EXP-004" || violation.ruleId === "EXP-005")
-      ? "REJECTED"
-      : "ACTION_REQUIRED";
+    const hasRejection = violations.some(
+      v => v.ruleId === "EXP-004" || v.ruleId === "EXP-005"
+    );
+    status = hasRejection ? "REJECTED" : "ACTION_REQUIRED";
   }
 
-  return { status, violations };
+  return {
+    status,
+    violations,
+  };
 }
 
+/**
+ * Generate action recommendation text and communication template for a CaseResult.
+ */
 export function generateNextAction(
   caseResult: CaseResult,
   expenseCase?: ExpenseCase
@@ -154,18 +191,17 @@ export function generateNextAction(
   }
 
   if (caseResult.status === "REJECTED") {
-    const reasons = caseResult.violations.map((violation) => `• ${violation.message}`).join("\n");
+    const reasons = caseResult.violations.map(v => `• ${v.message}`).join("\n");
     return {
       action: "Issue claim rejection notice",
       template: `Dear ${expenseCase?.employeeName || "Employee"},\n\nYour expense claim of PKR ${(expenseCase?.amount || 0).toLocaleString()} has been rejected due to the following policy violations:\n${reasons}\n\nPlease review the attached policy citations or submit an executive exception appeal.`,
     };
   }
 
-  const actions = caseResult.violations
-    .map((violation) => `• ${violation.action} (${violation.message})`)
-    .join("\n");
+  // ACTION_REQUIRED
+  const actions = caseResult.violations.map(v => `• ${v.action} (${v.message})`).join("\n");
   const citations = caseResult.violations
-    .map((violation) => `  [Policy Page ${violation.citation.page}${violation.citation.section ? `, Section ${violation.citation.section}` : ""}: "${violation.citation.text}"]`)
+    .map(v => `  [Policy Page ${v.citation.page}${v.citation.section ? `, Section ${v.citation.section}` : ""}: "${v.citation.text}"]`)
     .join("\n");
 
   return {

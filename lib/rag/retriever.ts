@@ -1,12 +1,7 @@
-/**
- * Policy Evidence Retriever (RAG) Starter
- * Owned by Member 2 (AI / RAG / Rule Engine).
- *
- * Performs semantic similarity search against document_chunks via Supabase pgvector RPC.
- * Never fabricate citations or page numbers.
- */
 import "server-only";
 import { Citation } from "@/types/contracts";
+import { generateEmbedding } from "@/lib/embeddings/generator";
+import { getAdminSupabase, isServerSupabaseConfigured } from "@/lib/supabase/server";
 
 export interface RetrievedChunk {
   id: string;
@@ -17,25 +12,69 @@ export interface RetrievedChunk {
   similarity: number;
 }
 
-export class RagNotImplementedError extends Error {
-  constructor(message = "RAG retrieval is not implemented yet (Member 2).") {
+export class RagConfigurationError extends Error {
+  constructor(message = "Supabase or Gemini is not configured for RAG retrieval.") {
     super(message);
-    this.name = "RagNotImplementedError";
+    this.name = "RagConfigurationError";
+  }
+}
+
+export class RagRetrievalError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RagRetrievalError";
   }
 }
 
 /**
- * Retrieve grounded policy citations for a query.
- * Throws until Member 2 wires match_document_chunks + embeddings.
- * Do not invent Citation objects for missing evidence.
+ * Retrieve grounded policy citations for a search query using pgvector semantic search.
+ *
+ * Rules:
+ * - Generates 768-dim query embedding via generateEmbedding()
+ * - Calls Supabase RPC match_document_chunks
+ * - Maps only real retrieved records to Citation[]
+ * - NEVER invents citations, page numbers, or sections
  */
 export async function retrievePolicyEvidence(
   query: string,
   documentId?: string
 ): Promise<Citation[]> {
-  void query;
-  void documentId;
-  throw new RagNotImplementedError(
-    "RAG retrieval not implemented. Member 2: call generateEmbedding + Supabase RPC match_document_chunks. Return only real retrieved chunks as Citation[]."
-  );
+  if (!query || query.trim().length === 0) {
+    return [];
+  }
+
+  if (!isServerSupabaseConfigured()) {
+    throw new RagConfigurationError(
+      "Supabase credentials are not configured. Cannot perform pgvector similarity search."
+    );
+  }
+
+  const queryEmbedding = await generateEmbedding(query);
+  const supabase = getAdminSupabase();
+
+  const { data, error } = await supabase.rpc("match_document_chunks", {
+    query_embedding: queryEmbedding,
+    match_threshold: 0.5,
+    match_count: 5,
+    filter_document_id: documentId || null,
+  });
+
+  if (error) {
+    throw new RagRetrievalError(`Vector similarity search failed: ${error.message}`);
+  }
+
+  if (!Array.isArray(data) || data.length === 0) {
+    return [];
+  }
+
+  return data.map((chunk: {
+    page_number: number;
+    section: string | null;
+    content: string;
+  }) => ({
+    page: chunk.page_number,
+    section: chunk.section || undefined,
+    text: chunk.content,
+  }));
 }
+

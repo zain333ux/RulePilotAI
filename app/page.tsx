@@ -116,7 +116,7 @@ export default function HomePage() {
             </div>
             <h3 className="text-[17px] font-bold text-white mb-3 tracking-wide">Grounded Rule Extraction</h3>
             <p className="text-[15px] text-[#8e98ac] leading-[1.6]">
-              Instantly transform unstructured policy documents into precise, executable logic using Gemini AI.
+              Seamlessly convert complex, unstructured policy documents into precise, actionable rulesets powered by advanced enterprise AI.
             </p>
           </div>
 
@@ -158,7 +158,7 @@ export default function HomePage() {
             </div>
             <h3 className="text-[17px] font-bold text-white mb-3 tracking-wide">Transparent Workflow Logic</h3>
             <p className="text-[15px] text-[#8e98ac] leading-[1.6]">
-              Build and visualize complex business rule paths with a dynamic and interactive React Flow interface.
+              Map and orchestrate sophisticated business logic through an intuitive visual canvas designed for maximum operational clarity.
             </p>
           </div>
 
@@ -190,7 +190,7 @@ export default function HomePage() {
             </div>
             <h3 className="text-[17px] font-bold text-white mb-3 tracking-wide">Deterministic Decision Engine</h3>
             <p className="text-[15px] text-[#8e98ac] leading-[1.6]">
-              Ensure repeatable, accurate policy decisions free from human error or hallucinations.
+              Deploy auditable decision-making pipelines that guarantee consistent compliance and eliminate generative unpredictability.
             </p>
           </div>
 
@@ -223,7 +223,7 @@ export default function HomePage() {
             </div>
             <h3 className="text-[17px] font-bold text-white mb-3 tracking-wide">Agentic Integrations</h3>
             <p className="text-[15px] text-[#8e98ac] leading-[1.6]">
-              Submit business cases and audit automated next steps seamlessly into existing workflows.
+              Automate case evaluations and seamlessly embed intelligent compliance guardrails directly into your core business operations.
             </p>
           </div>
 

@@ -4,7 +4,24 @@ Member 1: Platform / Backend / API Integration.
 
 # Current Objective
 
-Integrate Member 2's policy-processing exports with the final three platform routes on `integration/platform-ai`.
+Prepare the live-verified backend for cross-team review and deployment integration. No backend feature work remains.
+
+## Backend Status
+
+**COMPLETE — live verified.** All six API routes use real server-side persistence and domain functions. No route returns scaffold or mock success.
+
+## Current Role
+
+Integration and deployment support only: preserve the verified contracts, help Members 3 and 4 consume the APIs, and support the integration lead's `dev` merge.
+
+## APIs
+
+- `POST /api/documents/upload`
+- `POST /api/documents/process`
+- `POST /api/rules/extract`
+- `POST /api/workflows/generate`
+- `POST /api/cases/execute`
+- `POST /api/actions/generate`
 
 ## Current State
 
@@ -119,7 +136,14 @@ Loads the stored case/result, calls `generateNextAction`, and returns `webhookTr
 
 ## Next Exact Step
 
-Have the integration lead review `integration/platform-ai` and decide whether to merge it into `dev`.
+Have the integration lead review `integration/backend-dev` and decide whether to merge it into `dev`.
+
+## Remaining Work
+
+- Review and merge the isolated `integration/backend-dev` candidate into `dev`.
+- Connect Member 3's frontend to the six real HTTP contracts without simulated success.
+- Connect Member 4's renderer to the returned `WorkflowDefinition` and later add the optional automation adapter.
+- Configure deployment environment variables and run deployment smoke checks after cross-team integration.
 
 # Session History
 
@@ -127,3 +151,4 @@ Have the integration lead review `integration/platform-ai` and decide whether to
 - 2026-10-03: Created `integration/platform-ai`, merged `origin/feature/ai-engine`, fixed the admin-client import mismatch, implemented the final three routes, and added 26 route tests.
 - 2026-10-03: Live final-PDF upload succeeded; processing failed closed because `GEMINI_API_KEY` is empty.
 - 2026-10-03: Verified the full live backend pipeline with real providers, fixed retired provider defaults and HTTP 503 propagation, and confirmed persisted chunks, rules, workflow, cases, results, citations, and actions.
+- 2026-10-03: Created `integration/backend-dev` from latest `origin/dev`, merged the verified backend without conflicts, revalidated 76 platform tests, all rule/RAG tests, 82 full-suite tests, the production build, security boundaries, and cross-team handoff notes.

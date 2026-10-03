@@ -6,7 +6,7 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 
 - Project: RulePilot AI.
 - Phase: backend API integration and live end-to-end verification complete.
-- Current branch: `integration/platform-ai`, created from `feature/platform` and merged with `origin/feature/ai-engine`. Confirm `git status -sb` when resuming.
+- Current branch: `integration/backend-dev`, created from latest `origin/dev` and fast-forwarded to the verified backend integration. `dev` and `main` remain unchanged.
 - Working architecture: one root Next.js 16.3.8 application. All six routes use server-side Storage/repositories and Member 2 domain exports; the three policy-pipeline routes now replace their 501 scaffolds.
 - Completed: shared foundation, live Supabase/storage, repositories, atomic rule/chunk replacement, upload, policy processing wiring, page-aware rule extraction wiring, workflow persistence, case execution, action generation, and credential-free route coverage.
 - Unfinished: connected product UI, workflow renderer, optional automation, and integration-lead merge into `dev`.
@@ -23,6 +23,17 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 - Last verified working commands: `npm run typecheck`; `npm run lint`; `npm run test:platform`; `npm test`; `npm run build`.
 - Exact next task: integration lead reviews `integration/platform-ai` and decides whether to merge it into `dev`.
 - Parallel readiness: yes; the backend MVP is verified live. Frontend/workflow/automation members can integrate against the documented contracts.
+
+### Backend consumption contract
+
+- `POST /api/documents/upload` stores the PDF and returns `documentId`.
+- `POST /api/documents/process` downloads the stored PDF and persists page-aware embedded chunks.
+- `POST /api/rules/extract` persists the source-grounded `PolicyRule[]` for that document.
+- `POST /api/workflows/generate` returns `workflowId` plus the persisted `WorkflowDefinition`.
+- `POST /api/cases/execute` returns `caseId` plus the persisted deterministic `CaseResult`.
+- `POST /api/actions/generate` returns the deterministic action/template. `webhookTriggered` remains `false` until Member 4's optional automation integration.
+
+Member 3 should call these real routes and surface their structured failures instead of simulating backend success. Member 4 should render the returned `WorkflowDefinition`; the renderer does not need to generate mock workflows internally.
 
 ## 2. Chronological Session Log
 
@@ -153,4 +164,11 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Member 2's 12-step live smoke passed with the final PDF: eight pages, 24 chunks, a 768-dimensional embedding, six grounded rules, and a 14-node/19-edge workflow.
 - The six real APIs completed on document `302136c4-e986-417d-a888-ea598f24b245`. Database read-back verified the chunks, rules, workflow, five representative cases/results, citations, and action drafts.
 - Cleanup of seven failed-attempt duplicate records was not executed because automatic approval review required explicit authorization for permanent live-data deletion.
+
+### Session 15: Backend dev-integration candidate (2026-10-03)
+
+- Confirmed `origin/dev` had no independent commits beyond the backend integration base, so the candidate merge had no conflicts.
+- Created `integration/backend-dev` from latest `origin/dev` and fast-forwarded it to `origin/integration/platform-ai` without rewriting history.
+- Confirmed all six routes remain real, shared contracts are unchanged, tracked files contain no configured secret values, and `.env.local` remains ignored.
+- Added concise Member 3 and Member 4 consumption guidance. Full credential-independent validation and production build passed; no live data was changed.
 

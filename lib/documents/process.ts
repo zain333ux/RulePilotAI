@@ -22,9 +22,10 @@ function apiError(status: number, code: string, error: string): Response {
 }
 
 function providerStatus(error: unknown): number | undefined {
-  if (error instanceof EmbeddingNotConfiguredError) return 503;
   if (error instanceof EmbeddingGenerationError) {
-    return /status\s+429|quota|rate.?limit/i.test(error.message) ? 429 : 502;
+    if (error.status === 429 || /status\s+429|quota|rate.?limit/i.test(error.message)) return 429;
+    if (error.status === 503) return 503;
+    return 502;
   }
   return undefined;
 }
@@ -83,8 +84,11 @@ export async function handleProcessDocument(
     if (error instanceof UnreadablePdfError || error instanceof PdfExtractionError) {
       return apiError(422, "UNREADABLE_PDF", "The PDF does not contain readable digital text.");
     }
+    if (error instanceof EmbeddingNotConfiguredError) {
+      return apiError(503, "PROVIDER_NOT_CONFIGURED", "The embedding provider is not configured.");
+    }
     const upstreamStatus = providerStatus(error);
-    if (upstreamStatus === 503) return apiError(503, "PROVIDER_NOT_CONFIGURED", "The embedding provider is not configured.");
+    if (upstreamStatus === 503) return apiError(503, "PROVIDER_UNAVAILABLE", "The embedding provider is temporarily unavailable.");
     if (upstreamStatus === 429) return apiError(429, "PROVIDER_RATE_LIMITED", "The embedding provider rate limit was reached.");
     if (upstreamStatus === 502) return apiError(502, "PROVIDER_FAILED", "The embedding provider request failed.");
     logger.error("Document processing failed.", error);

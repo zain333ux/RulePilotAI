@@ -184,6 +184,42 @@ export async function runAiModuleVerification() {
     }
   }
 
+  // 7. The supported default embedding model must retain the 768-dimension DB contract.
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousModel = process.env.GEMINI_EMBEDDING_MODEL;
+  const previousGenerationModel = process.env.GEMINI_MODEL;
+  const previousFetch = globalThis.fetch;
+  try {
+    process.env.GEMINI_API_KEY = "test-key";
+    delete process.env.GEMINI_EMBEDDING_MODEL;
+    globalThis.fetch = async (input) => {
+      assert.match(String(input), /models\/gemini-embedding-001:embedContent/);
+      return Response.json({ embedding: { values: Array(768).fill(0.25) } });
+    };
+    const embedding = await generateEmbedding("Supported model check");
+    assert.equal(embedding.length, 768);
+    console.log("Test 7 (Supported Default Embedding Model): Passed");
+
+    delete process.env.GEMINI_MODEL;
+    globalThis.fetch = async (input) => {
+      assert.match(String(input), /models\/gemini-3\.6-flash:generateContent/);
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: JSON.stringify([validRule]) }] } }],
+      });
+    };
+    const generatedRules = await extractPolicyRulesFromText("Supported generation model check");
+    assert.equal(generatedRules.length, 1);
+    console.log("Test 8 (Supported Default Generation Model): Passed");
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+    if (previousModel === undefined) delete process.env.GEMINI_EMBEDDING_MODEL;
+    else process.env.GEMINI_EMBEDDING_MODEL = previousModel;
+    if (previousGenerationModel === undefined) delete process.env.GEMINI_MODEL;
+    else process.env.GEMINI_MODEL = previousGenerationModel;
+  }
+
   console.log("✅ All AI / RAG module tests passed successfully!");
   return true;
 }

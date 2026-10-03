@@ -8,7 +8,7 @@ export class EmbeddingNotConfiguredError extends Error {
 }
 
 export class EmbeddingGenerationError extends Error {
-  constructor(message: string) {
+  constructor(message: string, readonly status?: number) {
     super(message);
     this.name = "EmbeddingGenerationError";
   }
@@ -16,7 +16,7 @@ export class EmbeddingGenerationError extends Error {
 
 /**
  * Generate a verified 768-dimensional embedding vector for input text
- * using Google's text-embedding-004 model.
+ * using Google's configured embedding model.
  *
  * Explicitly requests and validates 768 dimensions matching Supabase vector(768).
  * Never returns silent zero-vectors.
@@ -31,7 +31,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     throw new EmbeddingNotConfiguredError();
   }
 
-  const model = process.env.GEMINI_EMBEDDING_MODEL || "text-embedding-004";
+  const model = process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-001";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:embedContent?key=${apiKey}`;
 
   const payload = {
@@ -53,7 +53,8 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   if (!response.ok) {
     const errorBody = await response.text();
     throw new EmbeddingGenerationError(
-      `Embedding API returned status ${response.status}: ${errorBody.slice(0, 300)}`
+      `Embedding API returned status ${response.status}: ${errorBody.slice(0, 300)}`,
+      response.status
     );
   }
 

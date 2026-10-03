@@ -60,8 +60,11 @@ export async function handleExtractRules(
       return apiError(503, "PROVIDER_NOT_CONFIGURED", "The policy extraction provider is not configured.");
     }
     if (error instanceof GeminiExtractionError) {
-      if (/status\s+429|quota|rate.?limit/i.test(error.message)) {
+      if (error.status === 429 || /status\s+429|quota|rate.?limit/i.test(error.message)) {
         return apiError(429, "PROVIDER_RATE_LIMITED", "The policy extraction provider rate limit was reached.");
+      }
+      if (error.status === 503) {
+        return apiError(503, "PROVIDER_UNAVAILABLE", "The policy extraction provider is temporarily unavailable.");
       }
       return apiError(502, "PROVIDER_FAILED", "The policy extraction provider request failed.");
     }

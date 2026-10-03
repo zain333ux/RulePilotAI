@@ -22,7 +22,7 @@ export interface ProcessPolicyPdfResult {
  * Pipeline:
  * 1. Extract digital text pages with exact 1-based page numbers (no OCR).
  * 2. Generate page-aware chunks that never cross page boundaries.
- * 3. Generate 768-dimensional vector embeddings for each chunk via text-embedding-004.
+ * 3. Generate 768-dimensional vector embeddings for each chunk via the configured Gemini embedding model.
  * 4. Strictly validate embedding dimensions (must equal 768).
  *
  * Owned by Member 2. Does NOT persist to database or alter document status.

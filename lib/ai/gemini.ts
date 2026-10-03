@@ -10,7 +10,7 @@ export class GeminiNotConfiguredError extends Error {
 }
 
 export class GeminiExtractionError extends Error {
-  constructor(message: string) {
+  constructor(message: string, readonly status?: number) {
     super(message);
     this.name = "GeminiExtractionError";
   }
@@ -223,7 +223,7 @@ async function callGeminiExtractRules(promptContent: string): Promise<PolicyRule
     throw new GeminiNotConfiguredError();
   }
 
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   const payload = {
@@ -252,7 +252,8 @@ async function callGeminiExtractRules(promptContent: string): Promise<PolicyRule
   if (!response.ok) {
     const errorBody = await response.text();
     throw new GeminiExtractionError(
-      `Gemini extraction API failed with status ${response.status}: ${errorBody.slice(0, 300)}`
+      `Gemini extraction API failed with status ${response.status}: ${errorBody.slice(0, 300)}`,
+      response.status
     );
   }
 

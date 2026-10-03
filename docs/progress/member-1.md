@@ -12,7 +12,7 @@ Integrate Member 2's policy-processing exports with the final three platform rou
 - Supabase schema, private Storage, repositories, atomic chunk/rule replacement, upload, case execution, and action generation remain intact.
 - Member 2's `origin/feature/ai-engine` is merged into the integration branch.
 - Normal validation is credential-independent and passing.
-- Live upload succeeded, but the remaining live pipeline is blocked because `GEMINI_API_KEY` is empty in ignored `.env.local`.
+- The complete live backend pipeline is verified against the final corporate policy PDF with real Supabase and Gemini calls.
 
 ## Completed APIs
 
@@ -68,13 +68,22 @@ Loads the stored case/result, calls `generateNextAction`, and returns `webhookTr
 - `lib/rag/retriever.ts`: integration fix for the current admin-client module path.
 - `package.json` / `package-lock.json`: retain platform scripts and Member 2's `unpdf` dependency.
 
-## End-to-End Verification
+## Live End-to-End Verification
 
 - Source PDF: `RulePilot_Shared_Corporate_Expense_Policy.pdf`.
-- Live upload: passed; document ID `4e50440c-ff93-4943-82f9-77bb72cb4cb4`.
-- Processing: correctly returned HTTP 503 `PROVIDER_NOT_CONFIGURED` because `GEMINI_API_KEY` is empty.
-- Failure recovery: the document was not left at `processing`.
-- Page count, chunk count, six-rule extraction, citation grounding, workflow counts, case result, and action result remain unverified live until the key is configured. No values were fabricated.
+- Document ID: `302136c4-e986-417d-a888-ea598f24b245`.
+- Processing: passed with 8 pages and 24 persisted page-aware chunks. Every chunk references the document, has a 1-based page, nonempty content, and a 768-dimensional embedding.
+- Extracted/persisted rule IDs: `EXP-001`, `EXP-002`, `EXP-003`, `EXP-004`, `EXP-005`, `EXP-006`; exactly six unique rows remained after atomic replacement.
+- Citation grounding: passed against the eight extracted source pages. Persisted verbatim text and page numbers survived the repository round trip.
+- Workflow ID: `e4288c91-494e-44b4-a9b1-5e197ce130fa`; 14 nodes and 19 edges. Start/end cardinality, rule IDs, unique node/edge IDs, and all edge endpoints passed.
+- Case A `43b21f83-08a8-494a-b7ea-96483e33a04e`: `APPROVED`.
+- Case B `f7a7a90a-ddab-4d70-a57c-6a01f17409c6`: `ACTION_REQUIRED` for missing receipt.
+- Case C `5bd416a0-18c1-480f-ac90-a68580a2b5c5`: `REJECTED` for hotel cap.
+- Case D `61158a09-ce47-4a0b-a79e-947572a780e1`: `REJECTED` for late submission.
+- Case E `72047469-a38a-4401-80d5-c33d0df1f14d`: `ACTION_REQUIRED` for international travel without pre-approval.
+- Action generation passed for approved, action-required, and rejected results. Stored case/results were used and every response kept `webhookTriggered: false`.
+- Member 2 smoke test: PASS, all 12 steps; eight pages, 24 chunks, 768-dimensional embedding, six grounded rules, and a 14-node/19-edge workflow.
+- Database verification: document, chunks, rules, workflow, five cases, and five results were read back with matching relationships.
 
 ## Tests Run
 
@@ -90,17 +99,18 @@ Loads the stored case/result, calls `generateNextAction`, and returns `webhookTr
 ## Test Results
 
 - TypeScript and ESLint passed.
-- New route tests: 26 passed, 0 failed.
-- Platform suite: 74 passed, 0 failed.
+- New route tests: 28 passed, 0 failed.
+- Platform suite: 76 passed, 0 failed.
 - Expanded rule/RAG suite: all 5 test files passed.
-- Full suite: 80 passed, 0 failed.
+- Full suite: 82 passed, 0 failed.
 - Production build passed; all six API routes compile as dynamic routes.
-- Live upload passed. Live provider-dependent processing is blocked by missing Gemini configuration.
+- Live pipeline and database verification passed with no mock fallback data.
 
 ## Known Problems
 
-- `GEMINI_API_KEY` is empty in `.env.local`, so live embeddings and extraction cannot run.
-- The failed live test document remains as an auditable upload with status `failed`; it has no fabricated chunks, rules, or workflow.
+- Google retired the original `text-embedding-004` and restricted `gemini-2.5-flash`; defaults were updated to the live-verified `gemini-embedding-001` and `gemini-3.6-flash` while retaining environment overrides.
+- Temporary Gemini 503 capacity responses now retain HTTP 503 instead of being flattened to 502.
+- Seven duplicate documents from failed verification attempts remain in Supabase. Automated approval review rejected permanent cleanup because explicit deletion authorization was absent.
 
 ## Dependencies on Other Members
 
@@ -109,10 +119,11 @@ Loads the stored case/result, calls `generateNextAction`, and returns `webhookTr
 
 ## Next Exact Step
 
-Set `GEMINI_API_KEY` in ignored `.env.local`, restart Next.js, and rerun the live upload to action flow.
+Have the integration lead review `integration/platform-ai` and decide whether to merge it into `dev`.
 
 # Session History
 
 - 2026-10-03: Completed the Supabase foundation, upload, repositories, atomic replacement RPCs, case API, and action API on `feature/platform`.
 - 2026-10-03: Created `integration/platform-ai`, merged `origin/feature/ai-engine`, fixed the admin-client import mismatch, implemented the final three routes, and added 26 route tests.
 - 2026-10-03: Live final-PDF upload succeeded; processing failed closed because `GEMINI_API_KEY` is empty.
+- 2026-10-03: Verified the full live backend pipeline with real providers, fixed retired provider defaults and HTTP 503 propagation, and confirmed persisted chunks, rules, workflow, cases, results, citations, and actions.

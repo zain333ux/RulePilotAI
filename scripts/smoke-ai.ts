@@ -7,9 +7,9 @@
  * 2. Real page-aware digital text extraction (no OCR)
  * 3. Page count > 0 verification
  * 4. Page-aware policy chunking
- * 5. Vector embedding generation via text-embedding-004
+ * 5. Vector embedding generation via the configured Gemini embedding model
  * 6. Verification that embeddings are strictly 768 dimensions
- * 7. Live Google Gemini rule extraction (gemini-2.5-flash)
+ * 7. Live Google Gemini rule extraction using the configured generation model
  * 8. Strict PolicyRule schema validation
  * 9. Strict citation grounding validation against source pages
  * 10. Presence of all 6 expected demo rules (EXP-001 through EXP-006)
@@ -93,7 +93,7 @@ async function runSmokeTest() {
     throw new Error("Chunking generated 0 chunks.");
   }
 
-  console.log("[Step 5/12] Generating vector embedding via Google text-embedding-004...");
+  console.log("[Step 5/12] Generating vector embedding via the configured Gemini model...");
   const sampleChunk = chunks[0];
   const sampleEmbedding = await generateEmbedding(sampleChunk.content);
   console.log(`   Embedding generated successfully.`);

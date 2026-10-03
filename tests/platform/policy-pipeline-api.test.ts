@@ -91,6 +91,7 @@ for (const [name, error, status] of [
   ["storage download failure", new Error("storage"), 500],
   ["unreadable PDF", new UnreadablePdfError(), 422],
   ["embedding provider failure", new EmbeddingGenerationError("status 502"), 502],
+  ["temporary embedding outage", new EmbeddingGenerationError("status 503", 503), 503],
 ] as const) {
   test(`maps ${name} and marks processing failed`, async () => {
     const override = name === "storage download failure"
@@ -185,8 +186,14 @@ test("rejects an empty extraction without replacing stored rules", async () => {
 });
 
 test("maps Gemini quota failures to 429", async () => {
-  const result = await extract({ async extractPolicyRulesFromPages(): Promise<never> { throw new GeminiExtractionError("status 429 quota"); } });
+  const result = await extract({ async extractPolicyRulesFromPages(): Promise<never> { throw new GeminiExtractionError("status 429 quota", 429); } });
   assert.equal(result.response.status, 429);
+});
+
+test("maps temporary Gemini unavailability to 503", async () => {
+  const result = await extract({ async extractPolicyRulesFromPages(): Promise<never> { throw new GeminiExtractionError("status 503", 503); } });
+  assert.equal(result.response.status, 503);
+  assert.equal(result.body.code, "PROVIDER_UNAVAILABLE");
 });
 
 test("returns 500 when atomic policy-rule persistence fails", async () => {

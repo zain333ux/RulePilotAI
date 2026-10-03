@@ -69,3 +69,19 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 ### Session 5: Publish shared baseline (2026-10-02)
 
 User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no dev or competing changes. Re-ran npm test successfully. Publish this commit to main and dev together using a normal atomic push; no force push or history rewrite. Preserve setup/parallel-readiness as the review branch. Each teammate uses their own clone/worktree and starts their assigned feature branch at origin/dev.
+
+### Session 6: Member 2 — End-to-End AI/RAG/Rule Engine Implementation (2026-10-03)
+- **Branch:** `feature/ai-engine`
+- **Agent:** Member 2 (AI / RAG / Deterministic Rule Engine)
+- **Summary:**
+  - Implemented server-only PDF text parser (`lib/rag/pdf-parser.ts`) using `unpdf`. Extracts 1-based digital pages without OCR; fails closed with `UnreadablePdfError` on empty/scanned PDFs.
+  - Added page-aware chunker (`chunkPolicyPages` in `lib/rag/chunker.ts`). Ensures chunks never cross page boundaries, extracts sections without hallucinating, and ignores empty chunks.
+  - Implemented domain document processor (`processPolicyPdf` in `lib/rag/processor.ts`). Pure domain pipeline converting PDF bytes into 768-dim embedded chunks, ready for Member 1's `POST /api/documents/process`.
+  - Implemented strict citation grounding (`validatePolicyRulesAgainstSource` in `lib/ai/gemini.ts`). Validates page existence, normalizes whitespace for PDF line-breaks, and fails closed with `CitationGroundingError` on mismatched pages, fabricated citations, or paraphrased text.
+  - Implemented source-aware Gemini extraction (`extractPolicyRulesFromPages` in `lib/ai/gemini.ts`). Formats page markers, requests structured JSON from `gemini-2.5-flash`, and strictly grounds output against source pages.
+  - Implemented deterministic workflow generator (`generateWorkflowFromRules` in `lib/rules/workflow.ts`). Pure graph transformation yielding start node, condition/action/approval nodes preserving ruleIds, end node, and branching edges. Rejects duplicate rule IDs with `WorkflowGenerationError`.
+  - Cleaned stale prototype comments in `lib/rules/engine.ts`.
+  - Added live AI smoke test script (`scripts/smoke-ai.ts`) executing 12-step verification against real policy PDFs.
+  - Added unit test suites (`tests/rules/pdf-parser.test.ts`, `tests/rules/workflow.test.ts`, updated `tests/rules/chunker.test.ts`, `tests/rules/ai.test.ts`, and `tests/rules/engine.test.ts`).
+  - Verified `npm run typecheck`, `npm run lint`, `npm run test:rules`, `npm test`, and `npm run build` all pass with 0 errors. Shared contracts (`types/contracts.ts`) and API routes remained untouched.
+

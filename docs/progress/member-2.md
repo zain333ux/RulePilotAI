@@ -1,10 +1,10 @@
 # Role
-**Member 2 — AI / RAG / Rule Engine**
+**Member 2 — AI / RAG / Deterministic Rule Engine**
 
 ---
 
 # Current Objective
-Extract structured `PolicyRule[]` from policy text using Google Gemini with structured JSON schemas, provide page-aware chunking and 768-dim embeddings, and evaluate all 6 rules deterministically.
+Provide complete, production-quality, page-aware AI, RAG, PDF processing, and deterministic rule evaluation domain modules for Member 1's API orchestration and Member 4's workflow visualization.
 
 ---
 
@@ -14,106 +14,180 @@ Extract structured `PolicyRule[]` from policy text using Google Gemini with stru
 - `lib/rules/`
 - `lib/embeddings/`
 - `tests/rules/`
+- `scripts/smoke-ai.ts`
+
+Strict non-ownership:
+- Do NOT edit `app/api/**` (Member 1 owns routes).
+- Do NOT write Supabase persistence / repositories (Member 1 owns data persistence).
+- Do NOT modify `types/contracts.ts` (Frozen shared contract).
 
 ---
 
-# Definition of Done for First Milestone
-- [x] Plain text from sample expense policy submitted to `extractPolicyRulesFromText(text)` returns a valid `PolicyRule[]` with structured validation.
-- [x] Full deterministic rule engine supports all 6 agreed hackathon demo rules (`EXP-001` through `EXP-006`).
-- [x] Page-aware chunker preserves page numbers and section headers (`lib/rag/chunker.ts`).
-- [x] 768-dimensional embedding generation implemented for `text-embedding-004` (`lib/embeddings/generator.ts`).
-- [x] Semantic similarity retrieval implemented for Supabase pgvector RPC `match_document_chunks` (`lib/rag/retriever.ts`).
-- [x] Citations include verified `page`, `section`, and `text` excerpts grounded in the policy text (no hallucinations).
-- [x] `npm run test:rules` passes deterministically against all test fixtures and boundary conditions.
-- [x] `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` pass with zero errors.
+# Completed Work
+
+### 1. Real PDF Text Extraction (`lib/rag/pdf-parser.ts`)
+- Implemented `extractPdfPages(pdfBytes: Uint8Array): Promise<ExtractedPolicyPage[]>`.
+- Uses server-only Node-compatible PDF parser (`unpdf`).
+- Guarantees 1-based exact page numbers (`pageNumber: 1..N`).
+- Direct digital text stream extraction (strictly NO OCR).
+- Fails closed with typed `UnreadablePdfError` for empty or scanned/image-only PDFs.
+- Never fabricates fake page numbers or synthetic content.
+
+### 2. Real Page-Aware Chunking (`lib/rag/chunker.ts`)
+- Implemented `chunkPolicyPages(pages: ExtractedPolicyPage[]): PolicyChunk[]`.
+- Preserves exact source page per chunk; chunks NEVER cross page boundaries.
+- Detects section numbers (e.g. `1.4`, `2.1`, `3.1`) without hallucinating.
+- Filters out empty chunks while preserving source wording for citation grounding.
+- Preserved existing `chunkPolicyText(rawText)` for backward compatibility.
+
+### 3. Document Processing Domain Function (`lib/rag/processor.ts`)
+- Implemented `processPolicyPdf(pdfBytes: Uint8Array): Promise<ProcessPolicyPdfResult>`.
+- End-to-end domain pipeline:
+  `PDF bytes -> extractPdfPages -> chunkPolicyPages -> generateEmbedding (768-dim) -> validate dimensions -> return chunks`.
+- Pure domain-level processing with zero database calls, ready for Member 1's `POST /api/documents/process`.
+
+### 4. Strict Citation Grounding & Source-Aware Gemini Extraction (`lib/ai/gemini.ts`)
+- Implemented `validatePolicyRulesAgainstSource(rules, pages): PolicyRule[]`:
+  - Enforces that citation page actually exists in the document.
+  - Normalizes PDF line breaks and whitespace (`\s+ -> " "`) for robust comparison without allowing paraphrasing.
+  - Rejects citations where text belongs to a different page.
+  - Rejects fabricated or hallucinated citations with `CitationGroundingError`.
+  - Verifies section consistency when detectable.
+- Implemented `extractPolicyRulesFromPages(pages: ExtractedPolicyPage[]): Promise<PolicyRule[]>`:
+  - Formats page-marked text (`=== Page X ===`).
+  - Calls Gemini REST API (`gemini-2.5-flash`) with structured JSON schema.
+  - Validates `PolicyRule` schema.
+  - Validates citation grounding against exact source pages.
+  - Fails closed on malformed or ungrounded model output.
+
+### 5. Deterministic Visual Workflow Generator (`lib/rules/workflow.ts`)
+- Implemented `generateWorkflowFromRules(rules: PolicyRule[]): WorkflowDefinition`.
+- Pure deterministic graph transformation:
+  - Creates 1 `start` node (`Expense Submitted`).
+  - Creates condition and action/approval nodes for each `PolicyRule`, preserving `ruleId`.
+  - Distinguishes `approval` nodes (manager, finance, vp) from `action` nodes.
+  - Creates 1 `end` node (`Claim Processing Complete`).
+  - Generates valid directed branching edges.
+  - Rejects duplicate rule IDs explicitly with `WorkflowGenerationError`.
+  - Handles empty rule lists safely (`start -> end`).
+  - Zero React Flow coordinates (pure domain definition for Member 4).
+
+### 6. Full Deterministic Rule Engine (`lib/rules/engine.ts`)
+- Evaluates all 6 agreed hackathon demo rules deterministically:
+  - `EXP-001`: Receipt required above PKR 5,000 (`amount > 5000 && !receipt`).
+  - `EXP-002`: Manager approval required above PKR 50,000 (`amount > 50000 && !managerApproval`).
+  - `EXP-003`: Finance approval required above PKR 100,000 (`amount > 100000 && !financeApproval`).
+  - `EXP-004`: Hotel nightly rate cap of PKR 25,000 per night (`hotelNightlyRate > 25000` per ADR-008). Triggers `REJECTED`.
+  - `EXP-005`: Submission timeliness window (`calendar-day delta > 14 days`). Triggers `REJECTED`.
+  - `EXP-006`: International travel pre-approval (`internationalTravel == true && !preApproval`).
+- Precedence: 0 violations => `APPROVED`; `EXP-004`/`EXP-005` => `REJECTED`; approvals/receipt => `ACTION_REQUIRED`.
+- Cleaned stale prototype comments in file header.
+- Implemented `generateNextAction(caseResult, expenseCase)`.
+
+### 7. Embeddings & Semantic Search (`lib/embeddings/generator.ts`, `lib/rag/retriever.ts`)
+- 768-dimensional vector generation via Google `text-embedding-004`.
+- Supabase pgvector RPC semantic retriever `retrievePolicyEvidence(query, documentId)`.
+- Typed error safeguards when credentials are missing.
+
+### 8. Live Smoke Test (`scripts/smoke-ai.ts`)
+- Comprehensive 12-step verification script executing:
+  PDF loading -> page extraction -> chunking -> 768-dim embedding -> live Gemini extraction -> schema validation -> citation grounding -> EXP-001..EXP-006 presence -> workflow generation.
+- CLI usage: `npx tsx --conditions=react-server scripts/smoke-ai.ts <path-to-policy.pdf>`
+- Never prints API keys or auth tokens.
 
 ---
 
-# Completed
-- **Full Deterministic Rule Engine (`lib/rules/engine.ts`):**
-  - Implemented all 6 rules:
-    - `EXP-001`: Receipt required above PKR 5,000 (`amount > 5000 && !receipt`).
-    - `EXP-002`: Manager approval required above PKR 50,000 (`amount > 50000 && !managerApproval`).
-    - `EXP-003`: Finance approval required above PKR 100,000 (`amount > 100000 && !financeApproval`).
-    - `EXP-004`: Hotel nightly cap cap of PKR 25,000 per night (`hotelNightlyRate > 25000`). Evaluates only when provided per ADR-008; triggers `REJECTED`.
-    - `EXP-005`: Submission timeliness window (`calendar-day delta > 14 days`). Triggers `REJECTED`.
-    - `EXP-006`: International travel pre-approval (`internationalTravel == true && !preApproval`).
-  - Added strict `evaluateOperator()` supporting `>`, `<`, `>=`, `<=`, `==`, `!=` without JavaScript type coercion.
-  - Added `calculateDaysBetween()` for calendar-day calculation between ISO dates.
-  - Status precedence logic: 0 violations => `APPROVED`; hard cap/deadline violations (`EXP-004`, `EXP-005`) => `REJECTED`; missing approvals => `ACTION_REQUIRED`.
-  - Added `generateNextAction()` providing drafted actions and communication templates for Member 1's `/api/actions/generate`.
-- **Page-Aware Policy Chunker (`lib/rag/chunker.ts`):**
-  - Parses text by page markers (`=== Demo Page X ===`, `=== Page X ===`, `\f`).
-  - Preserves 1-indexed `pageNumber`, detects `section` numbers (e.g. `1.4`, `2.1`, `3.1`), and extracts trimmed content chunks without hallucinating.
-- **768-Dimensional Embedding Generator (`lib/embeddings/generator.ts`):**
-  - Connects to Google's `text-embedding-004` requesting explicit `outputDimensionality: 768` matching Supabase `vector(768)`.
-  - Throws `EmbeddingNotConfiguredError` when key is missing; never returns silent zero-vectors.
-- **Policy Evidence Retriever (`lib/rag/retriever.ts`):**
-  - Calls `generateEmbedding(query)` and Supabase RPC `match_document_chunks`.
-  - Maps real chunk records to `Citation[]`; guards against hallucinated citations when unconfigured.
-- **Gemini Structured Extraction (`lib/ai/gemini.ts`):**
-  - Connects to Gemini REST API (`gemini-2.5-flash`) using structured JSON mode and system prompt.
-  - Added `validatePolicyRules()` validating output against `PolicyRule` contract (id, name, field, operator, value, action, citation with page/section/text).
-- **Test Suites:**
-  - `tests/rules/engine.test.ts`: 10 comprehensive tests covering Approved, Approval Required, Multiple Violations, EXP-004 Hotel Cap, EXP-004 Boundary (PKR 25k), EXP-005 Late Submission, EXP-005 Exact 14-day Boundary, EXP-006 International Travel, Operator evaluation, and Next Action generation.
-  - `tests/rules/chunker.test.ts`: Verifies exact page and section parsing against `mocks/sample-expense-policy.txt`.
-  - `tests/rules/ai.test.ts`: Verifies rule validation, malformed filter, and credential safeguard exceptions.
+# Test Verification Summary
+
+All test suites pass deterministically:
+
+1. `npm run test:rules`
+   - 10 deterministic rule engine tests (Approved, Action Required, Multiple Violations, EXP-004 Cap, EXP-004 25k Boundary, EXP-005 Late, EXP-005 14-day Boundary, EXP-006 Intl, Operator evaluation, Next Action generation)
+   - 2 policy text chunker tests (sample policy text detection + `chunkPolicyPages` boundary/empty isolation)
+   - 5 workflow generator tests (node structure, valid edge references, determinism, empty rules, duplicate rule rejection)
+2. `npm test`
+   - All rule engine, workflow E2E, foundation, and fixture tests pass (9/9 TAP subtests).
+3. `npx tsx --conditions=react-server tests/rules/pdf-parser.test.ts`
+   - Multi-page digital PDF text extraction
+   - 1-based page numbering verification
+   - Empty buffer rejection
+   - Unreadable / scanned PDF fails closed
+4. `npx tsx --conditions=react-server tests/rules/ai.test.ts`
+   - Schema validation against `PolicyRule` contract
+   - Dropping malformed / invalid operator items
+   - Exact citation grounding accepted
+   - Whitespace and newline normalized citations accepted
+   - Wrong page citation rejected (`CitationGroundingError`)
+   - Fabricated citation rejected (`CitationGroundingError`)
+   - Paraphrased citation rejected (`CitationGroundingError`)
+   - Non-existent page citation rejected (`CitationGroundingError`)
+   - Gemini, Embeddings, and RAG missing key safeguards
+5. `npm run typecheck`: TypeScript passes with 0 errors.
+6. `npm run lint`: ESLint passes with 0 warnings/errors.
+7. `npm run build`: Production Next.js build compiled all 14 routes successfully.
 
 ---
 
-# In Progress
-- Providing tested domain functions to Member 1 for route wiring.
+# Exported Signatures for Member 1 Handoff
 
----
+Member 1 can directly import and call these domain functions:
 
-# Files Created/Modified
-- `lib/rules/engine.ts` (full 6-rule deterministic engine, operators, next-action generator)
-- `tests/rules/engine.test.ts` (expanded from 3 to 10 tests + integrated chunker verification)
-- `lib/rag/chunker.ts` (page-aware text chunker)
-- `tests/rules/chunker.test.ts` (chunker unit tests)
-- `lib/ai/gemini.ts` (Gemini REST extraction and schema validator)
-- `lib/embeddings/generator.ts` (768-dim embeddings generator)
-- `lib/rag/retriever.ts` (pgvector RPC evidence retriever)
-- `tests/rules/ai.test.ts` (safeguard and validator tests)
-- `docs/progress/member-2.md` (progress report)
+### 1. PDF Extraction
+```ts
+import { extractPdfPages, type ExtractedPolicyPage, UnreadablePdfError } from "@/lib/rag/pdf-parser";
 
----
+const pages: ExtractedPolicyPage[] = await extractPdfPages(pdfBytes);
+// returns: [{ pageNumber: 1, text: "..." }, ...]
+```
 
-# APIs / Interfaces Used
-- `PolicyRule`, `Citation`, `ExpenseCase`, `CaseResult`, `RuleOperator`, `CaseStatus` from `types/contracts.ts`
-- Google Gemini API: `gemini-2.5-flash` / `text-embedding-004` (768-dim)
-- Supabase RPC: `match_document_chunks`
+### 2. Page-Aware Chunking
+```ts
+import { chunkPolicyPages, type PolicyChunk } from "@/lib/rag/chunker";
 
----
+const chunks: PolicyChunk[] = chunkPolicyPages(pages);
+// returns: [{ pageNumber: 1, section: "1.4", content: "..." }, ...]
+```
 
-# Tests Run
-- `npm run test:rules`: 10 rule engine tests + 7-page chunker test passed.
-- `npx tsx --conditions=react-server tests/rules/ai.test.ts`: 5 validator and safety tests passed.
-- `npm test`: All 9 foundation and fixture tests passed.
-- `npm run typecheck`: Passed with 0 errors.
-- `npm run lint`: Passed with 0 warnings/errors.
-- `npm run build`: Production Next.js build compiled all 14 routes successfully.
+### 3. End-to-End PDF Domain Processor (for `POST /api/documents/process`)
+```ts
+import { processPolicyPdf, type ProcessPolicyPdfResult, type EmbeddedPolicyChunk } from "@/lib/rag/processor";
 
----
+const { pageCount, chunks } = await processPolicyPdf(pdfBytes);
+// chunks: [{ pageNumber: 1, section: "1.4", content: "...", embedding: number[768] }, ...]
+// Member 1 then calls replaceDocumentChunks(documentId, chunks) in Supabase
+```
 
-# Known Problems & Blockers
-- Live Gemini API extraction and live Supabase RPC require `GEMINI_API_KEY` and Supabase keys in `.env.local`. When unconfigured, modules safely throw explicit configuration errors rather than fabricating mock data.
+### 4. Grounded Rule Extraction (for `POST /api/rules/extract`)
+```ts
+import { extractPolicyRulesFromPages, validatePolicyRulesAgainstSource } from "@/lib/ai/gemini";
 
----
+const rules: PolicyRule[] = await extractPolicyRulesFromPages(pages);
+// Validates schema + verifies citations verbatim in source pages
+// Member 1 then calls replacePolicyRules(documentId, rules) in Supabase
+```
 
-# Dependencies on Other Members
-- Member 1 to wire `/api/rules/extract`, `/api/documents/process`, `/api/cases/execute`, and `/api/actions/generate` using the tested functions from `lib/ai/`, `lib/rag/`, and `lib/rules/`.
+### 5. Workflow Generation (for `POST /api/workflows/generate`)
+```ts
+import { generateWorkflowFromRules } from "@/lib/rules/workflow";
 
----
+const workflow: WorkflowDefinition = generateWorkflowFromRules(rules);
+// returns { nodes: [...], edges: [...] }
+```
 
-# Next Exact Steps
-1. User to add `GEMINI_API_KEY` and Supabase credentials in local `.env.local` if live network testing is desired.
-2. Coordinate with Member 1 on route integration for `/api/cases/execute` and `/api/rules/extract`.
-3. Provide sample policy text extraction smoke test when credentials are set.
+### 6. Case Evaluation & Actions (for `POST /api/cases/execute` & `POST /api/actions/generate`)
+```ts
+import { evaluateExpenseCase, generateNextAction } from "@/lib/rules/engine";
 
----
+const caseResult: CaseResult = evaluateExpenseCase(expenseCase, rules);
+// returns { status: "APPROVED" | "ACTION_REQUIRED" | "REJECTED", violations: [...] }
 
-# Session History
-- **Session 1 (Setup):** Partial rule engine prototype, stubs, test fixtures.
-- **Session 2 (Milestone 1):** Complete 6-rule deterministic engine with boundary conditions and status precedence, next-action generator, page-aware text chunker, 768-dim embedding generator, pgvector RAG retriever, and Gemini REST extraction client. All tests, lint, and build verified.
+const nextAction = generateNextAction(caseResult, expenseCase);
+// returns { action: string, template: string }
+```
 
+### 7. Vector Search & Citations
+```ts
+import { retrievePolicyEvidence } from "@/lib/rag/retriever";
+
+const citations: Citation[] = await retrievePolicyEvidence(query, documentId);
+```

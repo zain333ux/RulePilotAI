@@ -5,6 +5,7 @@ import approvalRequiredCase from "../../mocks/approval-required-case.json";
 import multipleViolationsCase from "../../mocks/multiple-violations.json";
 import { PolicyRule, ExpenseCase } from "../../types/contracts";
 import { runChunkerVerification } from "./chunker.test";
+import { runWorkflowGeneratorVerification } from "./workflow.test";
 
 const rules = mockRules as PolicyRule[];
 
@@ -148,6 +149,9 @@ export function runRulesVerification() {
 
   // Run chunker tests
   runChunkerVerification();
+
+  // Run workflow generator tests
+  runWorkflowGeneratorVerification();
 
   return true;
 }

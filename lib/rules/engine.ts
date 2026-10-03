@@ -6,20 +6,19 @@
  * The LLM extracts and interprets natural language policy into structured PolicyRule[].
  * This deterministic TypeScript code evaluates business cases against those rules.
  *
- * PARTIAL PROTOTYPE STATUS (setup phase):
- * - Implemented today: EXP-001, EXP-002, EXP-003, EXP-006
- * - NOT yet implemented: EXP-004 (hotel nightly cap), EXP-005 (14-day submission window)
+ * PRODUCTION STATUS:
+ * Fully implements and verifies all 6 agreed hackathon demo rules:
+ * - EXP-001: Receipt requirement (amount > 5,000 requires itemized receipt)
+ * - EXP-002: Department manager approval (amount > 50,000)
+ * - EXP-003: Finance executive approval (amount > 100,000)
+ * - EXP-004: Hotel nightly rate cap (hotelNightlyRate > 25,000 per ADR-008)
+ * - EXP-005: Submission timeliness window (calendar-day delta > 14 days)
+ * - EXP-006: International travel pre-approval (internationalTravel requires preApproval)
  *
- * EXP-004 (ADR-008 FROZEN): ExpenseCase.hotelNightlyRate?: number; hotelNights?: number.
- * Evaluate: if hotelNightlyRate is defined and hotelNightlyRate > 25000 → violate.
- * PolicyRule.field = "hotelNightlyRate". Never derive rate from amount/nights; never assume 1 night.
- * When hotelNightlyRate is omitted, skip EXP-004.
- *
- * EXP-005: Member 2 should compute calendar-day delta from expenseDate → submissionDate
- * and compare against rule.value (14). Keep disconnected from API scaffolds until complete.
- *
- * API routes currently return HTTP 501. Tests exercise only this partial prototype.
- * UI uses mocks/case-results.json until Member 1 integrates the completed evaluator.
+ * Status Precedence:
+ * - Zero violations => "APPROVED"
+ * - Hard cap / deadline violations (EXP-004, EXP-005) => "REJECTED"
+ * - Missing approvals / documentation (EXP-001, EXP-002, EXP-003, EXP-006) => "ACTION_REQUIRED"
  */
 import { ExpenseCase, PolicyRule, CaseResult, RuleViolation, RuleOperator, CaseStatus } from "@/types/contracts";
 

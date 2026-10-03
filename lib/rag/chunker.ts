@@ -5,6 +5,7 @@
  * Chunks policy text while preserving exact page numbers, section identifiers,
  * and text boundaries. Never fabricates page numbers or sections.
  */
+import type { ExtractedPolicyPage } from "./pdf-parser";
 
 export interface PolicyChunk {
   pageNumber: number; // 1-indexed
@@ -13,9 +14,38 @@ export interface PolicyChunk {
 }
 
 /**
+ * Parses real extracted PDF pages into page-aware chunks.
+ *
+ * Guarantees:
+ * - Chunks NEVER cross page boundaries
+ * - Preserves exact source page numbers (1-indexed)
+ * - Detects section numbers when present without fabricating
+ * - Removes empty chunks
+ * - Maintains understandable text context for citation grounding
+ */
+export function chunkPolicyPages(pages: ExtractedPolicyPage[]): PolicyChunk[] {
+  if (!Array.isArray(pages) || pages.length === 0) {
+    return [];
+  }
+
+  const chunks: PolicyChunk[] = [];
+
+  for (const page of pages) {
+    if (!page.text || page.text.trim().length === 0) {
+      continue;
+    }
+
+    parsePageContentIntoChunks(page.pageNumber, page.text.trim(), chunks);
+  }
+
+  return chunks.filter(c => c.content.trim().length > 0);
+}
+
+/**
  * Parses raw or extracted policy text into page-aware chunks.
  * Handles page markers (e.g., "=== Demo Page X ===", "=== Page X ===", "\f"),
  * detects section headers (e.g. "Section 1.4"), and trims clean text.
+ * Preserved for backward compatibility and raw text tests.
  */
 export function chunkPolicyText(rawText: string): PolicyChunk[] {
   if (!rawText || rawText.trim().length === 0) {
@@ -41,7 +71,7 @@ export function chunkPolicyText(rawText: string): PolicyChunk[] {
         parsePageContentIntoChunks(pageNum, pageBody, chunks);
       }
     }
-    return chunks;
+    return chunks.filter(c => c.content.trim().length > 0);
   }
 
   // Check for form feed character '\f' (standard PDF page separator)
@@ -54,12 +84,12 @@ export function chunkPolicyText(rawText: string): PolicyChunk[] {
         parsePageContentIntoChunks(pageNum, trimmed, chunks);
       }
     });
-    return chunks;
+    return chunks.filter(c => c.content.trim().length > 0);
   }
 
   // Single page or unstructured fallback
   parsePageContentIntoChunks(1, normalized.trim(), chunks);
-  return chunks;
+  return chunks.filter(c => c.content.trim().length > 0);
 }
 
 /**

@@ -4,14 +4,14 @@
 
 -- ---------------------------------------------------------------------------
 -- MANUAL SETUP (required once per Supabase project)
--- 1. Enable the Database → Extensions → vector (pgvector) if not auto-created.
--- 2. Run this entire migration in the SQL Editor.
+-- 1. Run this entire migration in the SQL Editor.
+-- 2. Run subsequent migrations in timestamp order.
 -- 3. Storage → New bucket → name: policies → Private bucket; use signed URLs for previews.
 -- 4. Copy Project URL + anon key + service_role key into .env.local (never commit).
 -- ---------------------------------------------------------------------------
 
--- 1. Enable pgvector extension for chunk embeddings and semantic retrieval
-CREATE EXTENSION IF NOT EXISTS vector;
+-- 1. Enable pgvector in Supabase's dedicated extensions schema.
+CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA extensions;
 
 -- 2. Documents table
 CREATE TABLE IF NOT EXISTS documents (
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS document_chunks (
     page_number INTEGER NOT NULL CHECK (page_number >= 1),
     section TEXT,
     content TEXT NOT NULL,
-    embedding vector(768), -- Storage contract: choose a supported model with explicit 768-dimensional output
+    embedding extensions.vector(768), -- Storage contract: choose a supported model with explicit 768-dimensional output
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
@@ -104,7 +104,7 @@ CREATE INDEX IF NOT EXISTS idx_case_results_case_id ON case_results(case_id);
 
 -- 8. Semantic Similarity Search Function (Vector RPC)
 CREATE OR REPLACE FUNCTION match_document_chunks (
-    query_embedding vector(768),
+    query_embedding extensions.vector(768),
     match_threshold float,
     match_count int,
     filter_document_id uuid DEFAULT NULL
@@ -119,6 +119,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 STABLE
+SET search_path = public, extensions
 AS $$
 BEGIN
     RETURN QUERY

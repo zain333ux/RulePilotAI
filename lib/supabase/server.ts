@@ -1,37 +1,34 @@
 import "server-only";
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { readPublicSupabaseConfig } from "./config";
 
 /**
- * Server-side Supabase admin client.
- * MUST ONLY be called in API routes or Server Actions.
- * Uses SUPABASE_SERVICE_ROLE_KEY to bypass RLS — never expose to the browser.
+ * Server-side client using the public anon key.
+ * This client respects database privileges and RLS.
  */
 
 export function isServerSupabaseConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
 }
 
 /**
- * Create an admin Supabase client.
- * Throws a clear error when credentials are missing — never fabricates placeholder keys.
+ * Use for server reads that should not bypass RLS.
  */
-export function getAdminSupabase(): SupabaseClient {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+export function getServerSupabase(): SupabaseClient {
+  const { url, anonKey } = readPublicSupabaseConfig({
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  });
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error(
-      "Supabase server credentials not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local (server-only)."
-    );
-  }
-
-  return createClient(supabaseUrl, serviceRoleKey, {
+  return createClient(url, anonKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
+      detectSessionInUrl: false,
     },
   });
 }

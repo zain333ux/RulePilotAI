@@ -1,11 +1,13 @@
-import { notImplemented } from "@/lib/api/not-implemented";
+import { handleDocumentUpload } from "@/lib/documents/upload";
+import { createSupabaseDocumentUploadPersistence } from "@/lib/supabase/document-upload";
+
+export const runtime = "nodejs";
 
 /**
  * POST /api/documents/upload
  * Owned by Member 1 (HTTP routes); domain libraries keep their documented owners.
- * Scaffold only — returns HTTP 501 until Supabase Storage + documents insert are connected.
+ * Accepts one PDF, stores it privately, and creates its documents row.
  */
 export async function POST(request: Request) {
-  void request;
-  return notImplemented("POST /api/documents/upload", "Member 1 (Platform / Backend)");
+  return handleDocumentUpload(request, createSupabaseDocumentUploadPersistence);
 }

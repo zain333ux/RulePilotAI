@@ -99,11 +99,12 @@ This document tracks all foundational architectural, technical, and interface de
 - **Status:** Accepted
 - **Context:** Need storage for uploaded PDFs, page-aware text chunks, vector embeddings for citation search, structured rules, workflows, and evaluation histories.
 - **Decision:**
-  - Supabase PostgreSQL with `vector` extension (`vector(768)` as the repository dimension contract; Member 2 must select a currently supported model and explicitly request/verify 768 output dimensions).
+  - Supabase PostgreSQL with the `vector` extension installed in the `extensions` schema (`vector(768)` as the repository dimension contract; Member 2 must select a currently supported model and explicitly request/verify 768 output dimensions).
   - Storage bucket: `policies`.
   - Tables: `documents`, `document_chunks`, `policy_rules`, `workflows`, `cases`, `case_results`.
   - Migration script: `supabase/migrations/20261002000000_initial_schema.sql`.
-  - Safe client fallback: `lib/supabase/client.ts` and `lib/supabase/server.ts` can be imported without credentials; the browser factory returns null and the admin factory throws when called without configuration. Server modules import server-only.
+  - Client separation: `lib/supabase/client.ts` uses only public browser credentials; `lib/supabase/server.ts` is a server-only anon-key client that respects RLS; `lib/supabase/admin.ts` is the only service-role client and is reserved for trusted persistence adapters. All factories fail with named configuration errors when required values are missing.
+  - Live status (2026-10-03): both schema files were executed through the Supabase SQL Editor for the `RulePilotAI` project. SQL verification confirmed all six tables, five foreign keys, required CHECK/UNIQUE constraints, pgvector 0.8.2 in `extensions`, `document_chunks.embedding vector(768)`, the RPC, RLS, and service-role-only table access. The private `policies` bucket is limited to 4 MiB PDFs.
 
 ---
 
@@ -125,7 +126,7 @@ This document tracks all foundational architectural, technical, and interface de
 - Member 1 owns all route handlers and API transport tests. Member 2 supplies domain functions; Member 4 supplies renderer and optional automation functions. This resolves conflicting route comments and API ownership labels.
 - Workflow generation returns workflowId; execution accepts `{ workflowId, expenseCase }` and returns caseId. Action generation accepts caseId and loads the authoritative stored result. This ties document, workflow, case and result together without changing domain types.
 - No metadata-only upload success and no client-supplied rule/result overrides. Private bucket paths persist; signed URLs are temporary. Use a 4 MiB function upload limit; direct uploads for larger PDFs need a coordinated follow-up.
-- Target errors use ApiError. Current routes remain 501 and do not perform validation/persistence yet.
+- Target errors use ApiError. Initial routes were 501 scaffolds. As of 2026-10-03, document upload, case execution, and action generation are real; document processing, rule extraction, and workflow generation remain 501.
 - For future execution: hotel/lodging input missing hotelNightlyRate is invalid, not a non-hotel exemption. The optional field keeps non-hotel fixtures valid. Finite nonnegative amounts/rates, real ISO calendar dates, nonnegative date deltas and positive integer supplied nights are required.
 - Target status mapping: all clear APPROVED; missing prerequisites ACTION_REQUIRED; hotel cap/late claim REJECTED, with all violations retained. Unsupported rules or unresolved citations return a 422 error, never automatic approval.
 

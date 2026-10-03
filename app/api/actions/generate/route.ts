@@ -1,11 +1,14 @@
-import { notImplemented } from "@/lib/api/not-implemented";
+import { handleGenerateAction } from "@/lib/actions/generate";
+import { getCaseById, getCaseResultByCaseId } from "@/lib/repositories";
+
+export const runtime = "nodejs";
 
 /**
  * POST /api/actions/generate
  * Owned by Member 1 (HTTP routes); domain libraries keep their documented owners.
- * Scaffold only — returns HTTP 501 until action templates + optional webhook are wired.
+ * Loads the authoritative stored case and result, then uses Member 2's
+ * deterministic action generator. Webhook delivery remains disabled.
  */
 export async function POST(request: Request) {
-  void request;
-  return notImplemented("POST /api/actions/generate", "Member 1 (Platform / Backend)");
+  return handleGenerateAction(request, { getCaseById, getCaseResultByCaseId });
 }

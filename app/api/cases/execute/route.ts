@@ -1,13 +1,24 @@
-import { notImplemented } from "@/lib/api/not-implemented";
+import { handleExecuteCase } from "@/lib/cases/execute";
+import {
+  createCase,
+  getPolicyRulesByDocumentId,
+  getWorkflowById,
+  saveCaseResult,
+} from "@/lib/repositories";
+
+export const runtime = "nodejs";
 
 /**
  * POST /api/cases/execute
  * Owned by Member 1 (HTTP routes); domain libraries keep their documented owners.
- * Scaffold only — returns HTTP 501 until the full six-rule evaluator is complete.
- * Local evaluation: import evaluateExpenseCase from lib/rules/engine and fixtures from /mocks.
- * Do not call this API for demo evaluation until Member 1 integrates the completed Member 2 evaluator.
+ * Loads authoritative persisted rules, evaluates through Member 2's engine,
+ * and persists both the case and its result.
  */
 export async function POST(request: Request) {
-  void request;
-  return notImplemented("POST /api/cases/execute", "Member 1 (Platform / Backend)");
+  return handleExecuteCase(request, {
+    getWorkflowById,
+    getPolicyRulesByDocumentId,
+    createCase,
+    saveCaseResult,
+  });
 }

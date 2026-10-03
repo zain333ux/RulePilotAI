@@ -1,4 +1,5 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { readPublicSupabaseConfig } from "./config";
 
 /**
  * Client-side Supabase helpers.
@@ -14,16 +15,15 @@ export function isBrowserSupabaseConfigured(): boolean {
 }
 
 /**
- * Returns a browser Supabase client, or null when public env vars are missing.
- * Does not use placeholder credentials.
+ * Creates a browser client using only public project credentials.
+ * Throws a clear configuration error instead of using placeholder credentials.
  */
-export function getBrowserSupabase(): SupabaseClient | null {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+export function getBrowserSupabase(): SupabaseClient {
+  const { url, anonKey } = readPublicSupabaseConfig({
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  });
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return null;
-  }
-
-  return createClient(supabaseUrl, supabaseAnonKey);
+  return createClient(url, anonKey);
 }

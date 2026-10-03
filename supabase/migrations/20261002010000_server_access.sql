@@ -11,7 +11,7 @@ REVOKE ALL ON TABLE public.documents, public.document_chunks, public.policy_rule
 GRANT ALL ON TABLE public.documents, public.document_chunks, public.policy_rules,
   public.workflows, public.cases, public.case_results TO service_role;
 
-REVOKE EXECUTE ON FUNCTION public.match_document_chunks(vector, double precision, integer, uuid)
+REVOKE EXECUTE ON FUNCTION public.match_document_chunks(extensions.vector, double precision, integer, uuid)
   FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.match_document_chunks(vector, double precision, integer, uuid)
+GRANT EXECUTE ON FUNCTION public.match_document_chunks(extensions.vector, double precision, integer, uuid)
   TO service_role;

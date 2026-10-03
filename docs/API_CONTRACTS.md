@@ -55,7 +55,7 @@ Requests and responses use JSON except PDF upload. Identifiers in live mode are 
 - Errors: 400 incomplete case, nonfinite/negative amount or rate, invalid calendar date, submission before expense date, nonpositive/noninteger supplied hotelNights; 404 missing workflow; 409 rules not ready; 422 unhandled rule or unresolved evidence; 500 persistence failure.
 - Hotel/lodging claims require a hotelNightlyRate at validation time even though the domain field is optional for non-hotel claims. Missing rate must not silently bypass EXP-004. Follow ADR-008; do not derive the rate from total amount.
 - Deterministic target: no violations = APPROVED; missing approvals/receipt/preapproval = ACTION_REQUIRED; hard cap or late submission = REJECTED. Accumulate all violations; REJECTED takes precedence. Equality to the cap or exactly 14 days is allowed. Compare strict typed values without JavaScript coercion.
-- The current partial evaluator is not this endpoint implementation. Member 2 must add all six operators, all six rules and boundary tests first.
+- Implementation status: live on `feature/platform`. The handler uses persisted workflow/document rules and Member 2's completed six-rule evaluator. It never accepts client-supplied rules or decisions.
 
 ## POST /api/actions/generate
 
@@ -64,7 +64,8 @@ Requests and responses use JSON except PDF upload. Identifiers in live mode are 
 - Target 200: `GenerateActionResponse`, `{ "success": true, "caseId": "<uuid>", "action": "Request manager approval", "template": "<draft text>", "webhookTriggered": false }`.
 - Errors: 400 invalid ID; 404 missing case; 409 result not ready; 429/502 drafting provider failure; 500 persistence failure.
 - Draft generation never sends email automatically. Webhook dispatch remains optional, explicit, and outside this setup. A webhook failure must preserve the generated draft and case decision.
+- Implementation status: live on `feature/platform`. The handler loads the stored case and result and uses Member 2's deterministic `generateNextAction`. It currently returns `webhookTriggered: false` without invoking external automation.
 
 ## Independent development
 
-Use the JSON case/rule/workflow fixtures and `mocks/case-results.json` for UI states. Do not call a 501 endpoint expecting success or use the partial engine to simulate complete compliance. When Member 1 implements a route, replace its 501 assertion in `tests/foundation.test.ts` with the real success/error tests in that same change.
+Use the JSON case/rule/workflow fixtures and `mocks/case-results.json` for UI states. The document-processing, rule-extraction, and workflow-generation endpoints still return 501. Case execution and action generation have real success/error tests and no longer use scaffold assertions.

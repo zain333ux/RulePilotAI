@@ -5,9 +5,12 @@ import {
   extractPolicyRulesFromText,
   GeminiNotConfiguredError,
   CitationGroundingError,
+  DuplicateRuleIdError,
+  UnsupportedRuleFieldError,
 } from "../../lib/ai/gemini";
 import { generateEmbedding, EmbeddingNotConfiguredError } from "../../lib/embeddings/generator";
 import { retrievePolicyEvidence, RagConfigurationError } from "../../lib/rag/retriever";
+import { validateDemoExpensePolicyRules, DemoPolicyValidationError } from "../../lib/rules/demo-validator";
 import mockRules from "../../mocks/policy-rules.json";
 import { PolicyRule } from "../../types/contracts";
 import type { ExtractedPolicyPage } from "../../lib/rag/pdf-parser";
@@ -219,6 +222,58 @@ export async function runAiModuleVerification() {
     if (previousGenerationModel === undefined) delete process.env.GEMINI_MODEL;
     else process.env.GEMINI_MODEL = previousGenerationModel;
   }
+  // 9. Test Duplicate Rule ID Rejection
+  const duplicateIdInput = [
+    mockRules[0],
+    { ...mockRules[0], name: "Duplicate EXP-001 with same ID" },
+  ];
+  assert.throws(
+    () => {
+      validatePolicyRules(duplicateIdInput);
+    },
+    DuplicateRuleIdError,
+    "Expected DuplicateRuleIdError when model output has duplicate rule IDs"
+  );
+  console.log("Test 9 (Duplicate Rule ID Rejection): Passed");
+
+  // 10. Test Unsupported Field Rejection
+  const unsupportedFieldInput = [
+    { ...mockRules[0], field: "unsupportedCustomField" },
+  ];
+  assert.throws(
+    () => {
+      validatePolicyRules(unsupportedFieldInput);
+    },
+    UnsupportedRuleFieldError,
+    "Expected UnsupportedRuleFieldError when rule contains an unsupported field"
+  );
+  console.log("Test 10 (Unsupported Rule Field Rejection): Passed");
+
+  // 11. Test Demo Policy Semantic Validation
+  const validDemo = validateDemoExpensePolicyRules(mockRules as PolicyRule[]);
+  assert.equal(validDemo.length, 6, "Expected 6 demo rules to pass semantic validation");
+
+  // 11a. Missing demo rule fails
+  assert.throws(
+    () => {
+      validateDemoExpensePolicyRules((mockRules as PolicyRule[]).slice(0, 5));
+    },
+    DemoPolicyValidationError,
+    "Expected DemoPolicyValidationError when a required demo rule is missing"
+  );
+
+  // 11b. Invalid rule threshold fails
+  const invalidThreshold = (mockRules as PolicyRule[]).map(r =>
+    r.id === "EXP-001" ? { ...r, value: 9999 } : r
+  );
+  assert.throws(
+    () => {
+      validateDemoExpensePolicyRules(invalidThreshold);
+    },
+    DemoPolicyValidationError,
+    "Expected DemoPolicyValidationError when EXP-001 threshold is not 5000"
+  );
+  console.log("Test 11 (Demo Policy Semantic Validator): Passed");
 
   console.log("✅ All AI / RAG module tests passed successfully!");
   return true;

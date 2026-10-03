@@ -32,13 +32,29 @@ export function runWorkflowGeneratorVerification() {
   }
   console.log("Test 1 (All Rules Represented & Preserved): Passed");
 
-  // 2. All edges reference valid node IDs
+  // 2. All edges reference valid node IDs, no duplicate edge IDs
   const nodeIds = new Set(workflow.nodes.map(n => n.id));
+  assert.equal(nodeIds.size, workflow.nodes.length, "All node IDs must be strictly unique");
+
+  const edgeIds = new Set(workflow.edges.map(e => e.id));
+  assert.equal(edgeIds.size, workflow.edges.length, "All edge IDs must be strictly unique");
+
   for (const edge of workflow.edges) {
     assert.ok(nodeIds.has(edge.source), `Edge ${edge.id} references invalid source ${edge.source}`);
     assert.ok(nodeIds.has(edge.target), `Edge ${edge.id} references invalid target ${edge.target}`);
   }
-  console.log("Test 2 (Edge Source/Target Node Integrity): Passed");
+  console.log("Test 2 (Edge Source/Target Node Integrity & Uniqueness): Passed");
+
+  // 2b. Verify semantic labels for EXP-005 and EXP-006
+  const exp005Cond = workflow.nodes.find(n => n.ruleId === "EXP-005" && n.type === "condition");
+  assert.equal(exp005Cond?.label, "Submission Delay > 14 Days?", "EXP-005 label must be unambiguous");
+
+  const exp005YesEdge = workflow.edges.find(e => e.source === exp005Cond?.id && e.label?.startsWith("Yes"));
+  assert.equal(exp005YesEdge?.label, "Yes (> 14 Days)", "EXP-005 Yes edge must represent violation threshold");
+
+  const exp006Cond = workflow.nodes.find(n => n.ruleId === "EXP-006" && n.type === "condition");
+  assert.equal(exp006Cond?.label, "International Travel Claim?");
+  console.log("Test 2b (EXP-005 and EXP-006 Semantic Labels): Passed");
 
   // 3. Deterministic output
   const workflow2 = generateWorkflowFromRules(rules);

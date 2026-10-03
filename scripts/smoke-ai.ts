@@ -31,6 +31,7 @@ import { chunkPolicyPages } from "../lib/rag/chunker";
 import { generateEmbedding } from "../lib/embeddings/generator";
 import { extractPolicyRulesFromPages, validatePolicyRulesAgainstSource } from "../lib/ai/gemini";
 import { generateWorkflowFromRules } from "../lib/rules/workflow";
+import { validateDemoExpensePolicyRules } from "../lib/rules/demo-validator";
 
 async function runSmokeTest() {
   console.log("==========================================================");
@@ -120,16 +121,14 @@ async function runSmokeTest() {
   const groundedRules = validatePolicyRulesAgainstSource(rules, pages);
   console.log(`   Grounding verified for ${groundedRules.length} rule(s). Zero hallucinations.`);
 
-  console.log("[Step 10/12] Checking presence of expected hackathon demo rules (EXP-001 through EXP-006)...");
-  const expectedRuleIds = ["EXP-001", "EXP-002", "EXP-003", "EXP-004", "EXP-005", "EXP-006"];
-  const extractedIds = new Set(groundedRules.map(r => r.id));
-  const missingRules = expectedRuleIds.filter(id => !extractedIds.has(id));
+  console.log("[Step 10/12] Validating presence and semantics of expected demo rules (EXP-001 through EXP-006)...");
+  const allowArbitraryPolicy = process.argv.includes("--allow-arbitrary-policy");
 
-  if (missingRules.length > 0) {
-    console.warn(`   ⚠️ Note: The following expected demo rules were not detected: ${missingRules.join(", ")}`);
-    console.warn("   (If the provided PDF is not the final hackathon policy, this may be expected.)");
+  if (!allowArbitraryPolicy) {
+    validateDemoExpensePolicyRules(groundedRules);
+    console.log("   ✅ All 6 demo rules (EXP-001 to EXP-006) are present and semantically verified!");
   } else {
-    console.log("   ✅ All 6 demo rules (EXP-001 to EXP-006) are present and verified!");
+    console.log(`   ℹ️  Arbitrary policy mode enabled (--allow-arbitrary-policy): verified ${groundedRules.length} extracted rule(s).`);
   }
 
   console.log("[Step 11/12] Confirming verbatim citations exist on claimed pages...");

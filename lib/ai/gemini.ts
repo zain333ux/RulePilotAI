@@ -16,12 +16,41 @@ export class GeminiExtractionError extends Error {
   }
 }
 
+export class DuplicateRuleIdError extends GeminiExtractionError {
+  constructor(message: string) {
+    super(message);
+    this.name = "DuplicateRuleIdError";
+  }
+}
+
+export class UnsupportedRuleFieldError extends GeminiExtractionError {
+  constructor(field: string, ruleId: string) {
+    super(
+      `Unsupported rule field "${field}" on rule "${ruleId}". Engine only supports valid expense fields: ${Array.from(SUPPORTED_RULE_FIELDS).join(", ")}.`
+    );
+    this.name = "UnsupportedRuleFieldError";
+  }
+}
+
 export class CitationGroundingError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "CitationGroundingError";
   }
 }
+
+export const SUPPORTED_RULE_FIELDS = new Set<string>([
+  "amount",
+  "hotelNightlyRate",
+  "expenseDate",
+  "submissionDate",
+  "submissionWindowDays",
+  "internationalTravel",
+  "receipt",
+  "managerApproval",
+  "financeApproval",
+  "preApproval",
+]);
 
 const VALID_OPERATORS = new Set<RuleOperator>([">", "<", ">=", "<=", "==", "!="]);
 
@@ -42,6 +71,11 @@ export function normalizeCitationText(str: string): string {
 
 /**
  * Validates and sanitizes a raw array of parsed JSON objects into strictly typed PolicyRule[].
+ *
+ * Rules:
+ * - Drops malformed or non-rule objects
+ * - Fails closed with UnsupportedRuleFieldError if a well-formed rule uses an unsupported field
+ * - Fails closed with DuplicateRuleIdError if duplicate rule IDs are returned
  */
 export function validatePolicyRules(data: unknown): PolicyRule[] {
   if (!Array.isArray(data)) {
@@ -76,10 +110,15 @@ export function validatePolicyRules(data: unknown): PolicyRule[] {
       continue;
     }
 
+    const cleanField = field.trim();
+    if (!SUPPORTED_RULE_FIELDS.has(cleanField)) {
+      throw new UnsupportedRuleFieldError(cleanField, id.trim());
+    }
+
     validRules.push({
       id: id.trim(),
       name: name.trim(),
-      field: field.trim(),
+      field: cleanField,
       operator: operator as RuleOperator,
       value: value,
       action: action.trim(),
@@ -89,6 +128,17 @@ export function validatePolicyRules(data: unknown): PolicyRule[] {
         text: cit.text.trim(),
       },
     });
+  }
+
+  // Strict duplicate rule ID validation
+  const seenRuleIds = new Set<string>();
+  for (const rule of validRules) {
+    if (seenRuleIds.has(rule.id)) {
+      throw new DuplicateRuleIdError(
+        `Duplicate rule ID detected during extraction: "${rule.id}". Each extracted rule must have a unique rule ID.`
+      );
+    }
+    seenRuleIds.add(rule.id);
   }
 
   return validRules;

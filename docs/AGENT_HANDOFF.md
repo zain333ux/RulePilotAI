@@ -5,12 +5,12 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 ## CURRENT STATE
 
 - Project: RulePilot AI.
-- Phase: verified backend on `dev`; completed workflow and agent UX merged into an isolated integration candidate.
-- Current branch: `integration/workflow-dev`, created from `origin/dev` at `65fcc500a16c47f0123e55b7134aaf67e51e0e35` and merged with `origin/feature/workflow-completion`. `dev` and `main` remain unchanged during review.
-- Working architecture: one root Next.js 16.3.8 application. All six routes use server-side Storage/repositories and Member 2 domain exports. The workflow surface accepts `WorkflowDefinition` and runs a clearly labelled mock execution simulation through a central controller.
-- Completed: shared foundation, live Supabase/storage, repositories, atomic rule/chunk replacement, all six backend APIs, live backend verification, workflow renderer, synchronized graph/timeline execution UX, dynamic traversal, reset behavior, and optional webhook failure isolation.
-- Unfinished: product-level frontend integration with real API responses and optional webhook dispatch from the action route.
-- Known blockers: no backend pipeline blocker. Seven duplicate document records from failed verification attempts remain because automatic approval review rejected permanent cleanup without explicit deletion authorization.
+- Phase: final backend, AI-hardening, and workflow baseline candidate assembled; promotion to `dev` is waiting on the strict live smoke gate.
+- Current branch: `integration/final-baseline`, created from `origin/dev` at `65fcc500a16c47f0123e55b7134aaf67e51e0e35`, with Member 2 hardening commit `4941563c6a67b60e8c2a8c7af27d17857b120eb3` cherry-picked and `origin/integration/workflow-dev` merged. `dev` and `main` remain unchanged.
+- Working architecture: one root Next.js 16.3.8 application. All six routes use server-side Storage/repositories and Member 2 domain exports. AI extraction rejects duplicate IDs and unsupported fields; strict demo validation remains separate from generic extraction. The workflow surface accepts `WorkflowDefinition` and runs a clearly labelled mock execution simulation through a central controller.
+- Completed by area: **Backend — COMPLETE and previously live verified. AI/RAG — implementation and hardening COMPLETE; strict re-smoke currently provider-blocked. Workflow UX — COMPLETE and browser verified.**
+- Unfinished: Member 3 product-level frontend integration with real API responses, final visual polish, full browser E2E, deployment readiness, and optional webhook dispatch from the action route.
+- Known blockers: strict final-policy re-smoke reached live Gemini extraction three times but the provider returned HTTP 503 high demand each time. PDF extraction, 24 chunks, and the live 768-dimensional embedding passed. Do not promote this candidate to `dev` until the strict smoke completes. Seven duplicate document records remain untouched; no cleanup is authorized.
 - Known limitations: webhook dispatch remains disabled and `webhookTriggered` is always false. Case creation and result insertion are separate repository operations, so a result-insert failure can leave a persisted case without a result; the route returns 500 and logs the case ID. Use static expected result fixtures for mock UI until branches are integrated.
 - Decisions: LLM interprets policy; deterministic code executes rules. Member 1 owns every route. Workflow/case IDs bind rules and decisions to their documents. Server-only secret modules; private policy storage and server-only DB access baseline. See ADR-010 through ADR-012.
 - Environment: no credentials needed for build/unit tests. Server-only GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY and optional MAKE_WEBHOOK_URL; public NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY. All `.env*` files are ignored except `.env.example`. Supabase credentials are configured locally and the live upload was manually verified; never print or commit them.
@@ -21,8 +21,8 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 - Tests: credential-free tests cover all six routes, repositories, domain rules, fixtures, malformed workflows, layout, dynamic traversal, reset behavior, failure isolation, and webhook reliability.
 - Validation: complete live pipeline passed on document `302136c4-e986-417d-a888-ea598f24b245`: 8 pages, 24 chunks, six grounded rules, workflow `e4288c91-494e-44b4-a9b1-5e197ce130fa` with 14 nodes/19 edges, five expected case decisions, and action drafts. Final automated totals are in Member 1 progress.
 - Last verified working commands: `npm run typecheck`; `npm run lint`; `npm run test:platform`; `npm run test:rules`; `npm run test:workflow`; `npm test`; `npm run build`; `git diff --check`.
-- Exact next task: review `integration/workflow-dev`, then integrate that candidate into `dev` only after approval.
-- Parallel readiness: yes; the backend MVP is verified live and the workflow renderer is ready to consume real `WorkflowDefinition` responses. Member 3 still owns product-level API wiring.
+- Exact next task: rerun the strict final-policy smoke when Gemini extraction is available; if it passes, fast-forward `dev` to the reviewed final candidate and hand the baseline to Member 3.
+- Parallel readiness: code and automated validation are ready, but the final `dev` promotion is intentionally blocked by the required live smoke gate.
 
 ### Backend consumption contract
 
@@ -243,3 +243,12 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Full validation passed: 76 platform tests, all rule tests, workflow structure/malformed/layout/execution/webhook tests, 82 full-suite tests, production build, and whitespace checks.
 - Browser QA passed on `/workflows`: readable graph, zoom/pan, synchronized run progression, completed-node state, both reset paths, simulated failure, dynamic workflow switching, and no console, hydration, or error-overlay failures.
 - The page remains honestly labelled as sample/mock execution. Product-level fetching of the real workflow API remains Member 3 integration work; `/api/actions/generate` still returns `webhookTriggered: false`.
+
+### Session 17: Final baseline consolidation candidate (2026-10-03)
+
+- Created `integration/final-baseline` from verified `origin/dev`.
+- Cherry-picked only Member 2 hardening commit `4941563c6a67b60e8c2a8c7af27d17857b120eb3`; resolved its sole conflict in `tests/rules/ai.test.ts` by retaining both live-provider default tests and the new duplicate-ID, unsupported-field, and demo-semantic tests.
+- Preserved `gemini-3.6-flash`, `gemini-embedding-001`, 768-dimensional embeddings, provider 503 propagation, backend orchestration, persistence, and frozen contracts.
+- Merged the already verified `origin/integration/workflow-dev`; that candidate is an ancestor of this branch.
+- Typecheck, lint, 76 platform tests, hardened rule tests, workflow tests, 82 full-suite tests, production build, whitespace checks, browser workflow QA, and secret scans passed.
+- Strict live smoke read the final 8-page PDF, generated 24 page-aware chunks, and produced a 768-dimensional live embedding. Three extraction attempts failed closed at Gemini with HTTP 503 high demand, so `dev` was not updated.

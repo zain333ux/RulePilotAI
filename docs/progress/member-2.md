@@ -4,7 +4,7 @@
 ---
 
 # Current Objective
-Provide complete, production-quality, page-aware AI, RAG, PDF processing, and deterministic rule evaluation domain modules for Member 1's API orchestration and Member 4's workflow visualization.
+Member 2's AI/RAG and deterministic rule domain work is complete. Final hardening is integrated on `integration/final-baseline`; the remaining gate is to rerun the strict final-policy smoke after Gemini's temporary HTTP 503 high-demand condition clears.
 
 ---
 
@@ -60,7 +60,7 @@ Strict non-ownership:
   - Verifies section consistency when detectable.
 - **Source-Aware Gemini Extraction** (`extractPolicyRulesFromPages`):
   - Formats page-marked text (`=== Page X ===`).
-  - Calls Gemini REST API (`gemini-2.5-flash`) with structured JSON schema.
+  - Calls Gemini REST API using the live-verified default `gemini-3.6-flash` with structured JSON schema; `GEMINI_MODEL` remains an optional server-side override.
   - Validates `PolicyRule` schema, duplicate IDs, and supported fields.
   - Validates citation grounding against exact source pages.
   - Fails closed on malformed or ungrounded model output.
@@ -116,7 +116,7 @@ Strict non-ownership:
   PDF loading -> page extraction -> chunking -> 768-dim embedding -> live Gemini extraction -> schema validation -> citation grounding -> fail-closed demo rule validation -> workflow generation.
 - **Fail-Closed by Default**: Fails with exit code 1 if any of EXP-001..EXP-006 are missing or semantically invalid.
 - **Opt-out flag**: Supports `--allow-arbitrary-policy` for non-demo policy PDFs.
-- CLI usage: `npx tsx --conditions=react-server scripts/smoke-ai.ts <path-to-policy.pdf>`
+- CLI usage with this repository's ignored local environment: `node --env-file=.env.local --conditions=react-server --import tsx scripts/smoke-ai.ts <path-to-policy.pdf>`
 - Never prints API keys or auth tokens.
 
 ---
@@ -126,7 +126,7 @@ Strict non-ownership:
 - **Script**: `scripts/smoke-ai.ts`
 - **Execution Command**:
   ```powershell
-  npx tsx --conditions=react-server scripts/smoke-ai.ts path/to/RulePilot_Shared_Corporate_Expense_Policy.pdf
+  node --env-file=.env.local --conditions=react-server --import tsx scripts/smoke-ai.ts path/to/RulePilot_Shared_Corporate_Expense_Policy.pdf
   ```
 - **Requirements**:
   1. `GEMINI_API_KEY` set in environment or `.env.local`.
@@ -136,9 +136,9 @@ Strict non-ownership:
   2. Digital pages extract (`pages.length > 0`, 1-based indexing)
   3. Text streams verified non-empty
   4. Page-aware chunks generated (`chunks.length > 0`)
-  5. Vector embedding generated via `text-embedding-004`
+  5. Vector embedding generated via the live-verified `gemini-embedding-001`
   6. Embedding dimension verified strictly == 768
-  7. Google Gemini (`gemini-2.5-flash`) extracts structured JSON rules
+  7. Google Gemini (`gemini-3.6-flash` by default) extracts structured JSON rules
   8. Schema validation passed (`PolicyRule[]`)
   9. Citation grounding against source pages strictly validated
   10. Demo semantic validation: all 6 demo rules (EXP-001 to EXP-006) validated fail-closed
@@ -250,3 +250,21 @@ import { retrievePolicyEvidence } from "@/lib/rag/retriever";
 
 const citations: Citation[] = await retrievePolicyEvidence(query, documentId);
 ```
+
+## Session Update — 2026-10-03 — Final Baseline Integration Gate
+
+### Integrated
+- Final hardening commit `4941563c6a67b60e8c2a8c7af27d17857b120eb3` was cherry-picked onto `integration/final-baseline` without replacing the newer live-provider fixes.
+- `lib/rules/demo-validator.ts`, duplicate-ID rejection, unsupported-field rejection, strict demo semantics, clearer EXP-005/EXP-006 workflow labels, and strengthened rule/workflow tests are present.
+- Generic extraction remains independent: demo semantic validation is invoked by the strict smoke test, not by the reusable extraction function.
+
+### Validation
+- `npm run test:rules`: passed, including live-provider defaults, duplicate IDs, unsupported fields, missing demo rules, incorrect thresholds, EXP-005/EXP-006 labels, and node/edge uniqueness.
+- Full typecheck, lint, platform, workflow, full test, build, and whitespace gates passed on the combined final candidate.
+- Strict live smoke verified the final PDF has 8 readable pages, produced 24 page-aware chunks, and generated a 768-dimensional live embedding.
+
+### Current Blocker
+- Gemini extraction returned HTTP 503 high demand on three strict smoke attempts. The failure propagated correctly and no fallback rules or fabricated citations were used.
+
+### Next Exact Step
+Rerun the strict final-policy smoke without `--allow-arbitrary-policy`; promote the final candidate only after rule extraction, semantic validation, citation grounding, and workflow generation all pass.

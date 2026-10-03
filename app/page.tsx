@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { 
-  ArrowRight, 
-  ChevronRight,
+  ArrowRight,
   FileUp
 } from "lucide-react";
 import HeroDiagram from "@/components/HeroDiagram";
@@ -10,15 +9,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-r from-[#0d272f] via-[#162237] to-[#262745] text-[#d1d5db] font-sans relative overflow-hidden">
       
-      {/* Navigation Bar */}
-      <nav className="flex items-center justify-end px-8 py-6 sticky top-0 z-50">
-        <div className="flex items-center gap-8 text-[15px] font-medium text-[#9ca3af]">
-          <Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>
-          <Link href="/policies/upload" className="hover:text-white transition-colors flex items-center gap-1">
-            Upload Policy <ChevronRight className="w-4 h-4 ml-1 opacity-70" />
-          </Link>
-        </div>
-      </nav>
+
 
       <main className="flex flex-col items-center px-6 pt-10 pb-24 max-w-[1400px] mx-auto">
         

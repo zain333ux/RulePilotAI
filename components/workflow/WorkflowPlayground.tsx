@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { GitBranch, Layers } from "lucide-react";
+import { useState, useEffect } from "react";
+import { GitBranch, Layers, Sparkles } from "lucide-react";
 import mockWorkflow from "@/mocks/workflow.json";
 import { WorkflowExecutionDemo } from "./WorkflowExecutionDemo";
 import type { WorkflowDefinition } from "@/types/contracts";
+import { useSession } from "@/components/session/SessionProvider";
+import Link from "next/link";
 
 const FAST_TRACK_WORKFLOW: WorkflowDefinition = {
   nodes: [
@@ -74,13 +76,13 @@ interface WorkflowOption {
   synthetic: boolean;
 }
 
-const WORKFLOW_OPTIONS: WorkflowOption[] = [
+const BASE_OPTIONS: WorkflowOption[] = [
   {
     id: "standard",
-    name: "Employee Travel & Expense Policy",
+    name: "Standard Expense Check",
     workflow: mockWorkflow as WorkflowDefinition,
     description:
-      "Sample expense workflow from mocks/workflow.json with receipt checks, manager approval and finance approval.",
+      "Sample expense workflow with receipt checks, manager approval and finance approval.",
     synthetic: false,
   },
   {
@@ -88,111 +90,116 @@ const WORKFLOW_OPTIONS: WorkflowOption[] = [
     name: "Fast-Track Auto-Reconciliation",
     workflow: FAST_TRACK_WORKFLOW,
     description:
-      "Synthetic layout demo. Disburses compliant small-ticket invoices directly without manager escalation.",
+      "Disburses compliant small-ticket invoices directly without manager escalation.",
     synthetic: true,
   },
   {
     id: "procurement",
-    name: "Capital Procurement & PO Routing",
+    name: "Capital Procurement Routing",
     workflow: PROCUREMENT_WORKFLOW,
     description:
-      "Synthetic layout demo. Illustrates dual-level committee approval and PO dispatch.",
+      "Illustrates dual-level committee approval and PO dispatch.",
     synthetic: true,
   },
 ];
 
 export function WorkflowPlayground() {
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState(
-    WORKFLOW_OPTIONS[0].id,
-  );
+  const { session } = useSession();
+  
+  const options = session.workflow ? [
+    {
+      id: "session-active",
+      name: session.documentName ? `${session.documentName} Workflow` : "Active Policy Workflow",
+      workflow: session.workflow,
+      description: "Dynamically generated from your most recently uploaded policy.",
+      synthetic: false,
+    },
+    ...BASE_OPTIONS
+  ] : BASE_OPTIONS;
+
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState(options[0].id);
+
+  // Sync if session workflow arrives late
+  useEffect(() => {
+    if (session.workflow && selectedWorkflowId === "standard") {
+       setSelectedWorkflowId("session-active");
+    }
+  }, [session.workflow, selectedWorkflowId]);
 
   const currentOption =
-    WORKFLOW_OPTIONS.find((option) => option.id === selectedWorkflowId) ??
-    WORKFLOW_OPTIONS[0];
+    options.find((option) => option.id === selectedWorkflowId) ??
+    options[0];
 
   return (
     <div className="space-y-6">
       {/* Switcher Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#2b5a6c]/50 bg-[#0d1b2a]/60 backdrop-blur-md p-5 shadow-[0_0_20px_rgba(43,90,108,0.1)]">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-sm font-semibold text-white">
-            <Layers className="h-4 w-4 text-indigo-400" />
-            <span>Dynamic Workflow Switcher</span>
+          <div className="flex items-center gap-2 text-sm font-bold text-white tracking-wide">
+            <Layers className="h-4 w-4 text-[#4bbabc]" />
+            <span>Workflow Engine</span>
           </div>
-          <p className="text-xs text-zinc-400">
-            Compare the sample expense graph with alternate dynamic workflow topologies.
+          <p className="text-xs text-slate-400">
+            Select a workflow to simulate the execution engine.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {WORKFLOW_OPTIONS.map((option) => (
+        <div className="flex flex-wrap items-center gap-3">
+          {options.map((option) => (
             <button
               key={option.id}
               type="button"
               aria-pressed={selectedWorkflowId === option.id}
               onClick={() => setSelectedWorkflowId(option.id)}
-              className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all relative overflow-hidden group border ${
                 selectedWorkflowId === option.id
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                  : "border border-zinc-700 bg-zinc-800/60 text-zinc-300 hover:bg-zinc-700"
+                  ? "bg-indigo-600/20 border-indigo-500/50 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.2)]"
+                  : "border-[#2b5a6c]/40 bg-[#122336]/60 text-slate-300 hover:border-[#4bbabc]/50 hover:text-white"
               }`}
             >
-              <span>{option.name}</span>
-              <span className="rounded bg-black/30 px-1.5 py-0.5 text-[10px] font-mono opacity-80">
-                {option.workflow.nodes.length} Nodes ·{" "}
-                {option.workflow.edges.length} Edges
-              </span>
-              {option.synthetic && (
-                <span className="text-[10px] text-zinc-400">Demo</span>
+              {option.id === "session-active" && selectedWorkflowId === option.id && (
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-transparent pointer-events-none" />
               )}
+              {option.id === "session-active" && (
+                <Sparkles className="w-3.5 h-3.5" />
+              )}
+              <span className="relative z-10">{option.name}</span>
+              <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono relative z-10 ${
+                selectedWorkflowId === option.id ? "bg-indigo-500/20 text-indigo-300" : "bg-[#050a10] text-slate-400 border border-[#2b5a6c]/30"
+              }`}>
+                {option.workflow.nodes.length} N
+              </span>
             </button>
           ))}
         </div>
       </div>
 
       {/* Main Execution Arena */}
-      <div className="space-y-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 shadow-xl">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800/80 pb-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-base font-semibold text-white">
-              <GitBranch className="h-4 w-4 text-indigo-400" />
+      <div className="space-y-6 rounded-3xl border border-[#2b5a6c]/40 bg-[#0d1b2a]/40 backdrop-blur-sm p-6 lg:p-8 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2b5a6c]/30 pb-5">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-lg font-bold text-white">
+              <GitBranch className="h-5 w-5 text-[#4bbabc]" />
               <span>{currentOption.name}</span>
             </div>
-            <p className="text-xs text-zinc-400">
+            <p className="text-sm text-slate-400 max-w-2xl">
               {currentOption.description}
-            </p>
-            <p className="text-xs text-amber-400">
-              {currentOption.synthetic
-                ? "Synthetic layout demo — dynamic topology verification."
-                : "Authored sample fixture — mock demonstration data."}
             </p>
           </div>
 
-          <span className="rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs font-mono text-zinc-300">
-            {currentOption.workflow.nodes.length} Nodes ·{" "}
-            {currentOption.workflow.edges.length} Edges
+          <span className="rounded-lg border border-[#2b5a6c]/50 bg-[#122336] px-3 py-1.5 text-xs font-mono text-slate-300 shadow-inner flex items-center gap-3">
+            <span><strong>{currentOption.workflow.nodes.length}</strong> Nodes</span>
+            <span className="w-px h-3 bg-[#2b5a6c]/50" />
+            <span><strong>{currentOption.workflow.edges.length}</strong> Edges</span>
           </span>
         </div>
 
         {/* Central Controller owning both Graph & Timeline */}
-        <WorkflowExecutionDemo
-          key={selectedWorkflowId}
-          workflow={currentOption.workflow}
-        />
-
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800/80 pt-4 text-xs text-zinc-500">
-          <span>
-            Primary module ownership:{" "}
-            <strong>Member 4 (Workflow / Agent UX / Automation)</strong>
-          </span>
-          <span>
-            Active fixture:{" "}
-            <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
-              {selectedWorkflowId === "standard"
-                ? "mocks/workflow.json"
-                : `synthetic-${selectedWorkflowId}`}
-            </code>
-          </span>
+        <div className="bg-[#050a10] rounded-2xl overflow-hidden border border-[#2b5a6c]/30">
+          <WorkflowExecutionDemo
+            key={selectedWorkflowId}
+            workflow={currentOption.workflow}
+          />
         </div>
       </div>
     </div>

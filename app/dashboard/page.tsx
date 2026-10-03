@@ -1,86 +1,84 @@
+"use client";
+
 import Link from "next/link";
 import { FileText, GitFork, CheckCircle, Clock } from "lucide-react";
+import { useSession } from "@/components/session/SessionProvider";
 
 export default function DashboardPage() {
+  const { session } = useSession();
+
+  const activePolicies = session.documentId ? 1 : 0;
+  const extractedRules = session.rules?.length || 0;
+  const activeWorkflows = session.workflow ? 1 : 0;
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-6">
+    <div className="min-h-screen bg-[#0a0f18] text-slate-200 p-8 relative overflow-hidden flex flex-col">
+      {/* Background ambient glows */}
+      <div className="absolute top-[-10%] left-[20%] w-[50%] h-[50%] bg-[#4bbabc]/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[10%] right-[-10%] w-[30%] h-[40%] bg-[#9a75d5]/10 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto space-y-10 relative z-10 w-full flex-1">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#2b5a6c]/30 pb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
               Enterprise Compliance Dashboard
             </h1>
-            <p className="text-sm text-zinc-400">
-              Overview of active company policies, generated workflows, and recent evaluation
-              cases.
-            </p>
-            <p className="mt-2 text-xs text-amber-400/90 font-medium">
-              Sample fixture data — not live Supabase records.
+            <p className="text-sm text-slate-400 mt-2">
+              Overview of active company policies, generated workflows, and recent evaluation cases.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <Link
               href="/policies/upload"
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
+              className="px-6 py-2.5 bg-gradient-to-r from-[#4bbabc] to-[#9a75d5] hover:opacity-90 text-white rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(154,117,213,0.2)] transition-all"
             >
               Upload Policy
             </Link>
             <Link
               href="/cases"
-              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-sm font-medium border border-zinc-700 transition-colors"
+              className="px-6 py-2.5 bg-[#0d1b2a]/60 hover:bg-[#122336] text-white rounded-xl text-sm font-bold border border-[#2b5a6c]/50 transition-all hover:border-[#4bbabc]/50"
             >
-              View Sample Cases
+              Execute Cases
             </Link>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="p-6 rounded-xl border border-zinc-800 bg-zinc-900/50">
-            <div className="flex items-center justify-between text-zinc-400">
-              <span className="text-sm font-medium">Active Policies</span>
-              <FileText className="w-5 h-5 text-indigo-400" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="p-6 rounded-2xl border border-[#2b5a6c]/30 bg-[#0d1b2a]/40 backdrop-blur-md shadow-[0_0_20px_rgba(43,90,108,0.1)] group hover:border-[#4bbabc]/50 transition-colors">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-sm font-bold tracking-wide">Active Policies</span>
+              <FileText className="w-5 h-5 text-[#4bbabc]" />
             </div>
-            <div className="mt-3 text-3xl font-bold text-white">1</div>
-            <div className="mt-1 text-xs text-zinc-500">Sample demo policy fixture</div>
+            <div className="mt-4 text-4xl font-extrabold text-white">{activePolicies}</div>
+            <div className="mt-2 text-xs text-slate-500 font-medium">Currently loaded in engine</div>
           </div>
 
-          <div className="p-6 rounded-xl border border-zinc-800 bg-zinc-900/50">
-            <div className="flex items-center justify-between text-zinc-400">
-              <span className="text-sm font-medium">Extracted Rules</span>
+          <div className="p-6 rounded-2xl border border-[#2b5a6c]/30 bg-[#0d1b2a]/40 backdrop-blur-md shadow-[0_0_20px_rgba(43,90,108,0.1)] group hover:border-emerald-500/50 transition-colors">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-sm font-bold tracking-wide">Extracted Rules</span>
               <CheckCircle className="w-5 h-5 text-emerald-400" />
             </div>
-            <div className="mt-3 text-3xl font-bold text-white">6</div>
-            <div className="mt-1 text-xs text-zinc-500">From mocks/policy-rules.json</div>
+            <div className="mt-4 text-4xl font-extrabold text-white">{extractedRules}</div>
+            <div className="mt-2 text-xs text-slate-500 font-medium">Deterministic constraints</div>
           </div>
 
-          <div className="p-6 rounded-xl border border-zinc-800 bg-zinc-900/50">
-            <div className="flex items-center justify-between text-zinc-400">
-              <span className="text-sm font-medium">Active Workflows</span>
+          <div className="p-6 rounded-2xl border border-[#2b5a6c]/30 bg-[#0d1b2a]/40 backdrop-blur-md shadow-[0_0_20px_rgba(43,90,108,0.1)] group hover:border-amber-500/50 transition-colors">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-sm font-bold tracking-wide">Active Workflows</span>
               <GitFork className="w-5 h-5 text-amber-400" />
             </div>
-            <div className="mt-3 text-3xl font-bold text-white">1</div>
-            <div className="mt-1 text-xs text-zinc-500">From mocks/workflow.json</div>
+            <div className="mt-4 text-4xl font-extrabold text-white">{activeWorkflows}</div>
+            <div className="mt-2 text-xs text-slate-500 font-medium">Visual hierarchical graphs</div>
           </div>
 
-          <div className="p-6 rounded-xl border border-zinc-800 bg-zinc-900/50">
-            <div className="flex items-center justify-between text-zinc-400">
-              <span className="text-sm font-medium">Sample Cases</span>
-              <Clock className="w-5 h-5 text-sky-400" />
+          <div className="p-6 rounded-2xl border border-[#2b5a6c]/30 bg-[#0d1b2a]/40 backdrop-blur-md shadow-[0_0_20px_rgba(43,90,108,0.1)] group hover:border-[#9a75d5]/50 transition-colors">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-sm font-bold tracking-wide">Recent Executions</span>
+              <Clock className="w-5 h-5 text-[#9a75d5]" />
             </div>
-            <div className="mt-3 text-3xl font-bold text-white">3</div>
-            <div className="mt-1 text-xs text-zinc-500">Fixture cases only</div>
+            <div className="mt-4 text-4xl font-extrabold text-white">0</div>
+            <div className="mt-2 text-xs text-slate-500 font-medium">Since last session reset</div>
           </div>
-        </div>
-
-        <div className="p-6 rounded-xl border border-zinc-800 bg-zinc-900/40">
-          <h2 className="text-lg font-semibold text-white mb-2">Module Ownership Notice</h2>
-          <p className="text-sm text-zinc-400">
-            This dashboard shell is owned by{" "}
-            <strong className="text-indigo-400">Member 3 (Frontend / Product UI)</strong>. Data is
-            currently backed by shared contracts in{" "}
-            <code className="text-xs bg-zinc-800 px-1 py-0.5 rounded">types/contracts.ts</code> and
-            fixtures in <code className="text-xs bg-zinc-800 px-1 py-0.5 rounded">mocks/</code>.
-          </p>
         </div>
       </div>
     </div>

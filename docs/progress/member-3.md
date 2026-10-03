@@ -4,7 +4,7 @@
 ---
 
 # Current Objective
-Build the complete user experience (Dashboard, PDF Upload UX, Policy Analysis Screen, Expense Case Form, and Decision Screen) against mock data.
+Integrate the frontend with the final technical baseline (origin/integration/final-baseline), replacing mocks with real API calls, establishing a session-based state manager, and applying a polished B2B SaaS cyber aesthetic.
 
 ---
 
@@ -16,41 +16,34 @@ Build the complete user experience (Dashboard, PDF Upload UX, Policy Analysis Sc
 - `components/policy/`
 - `components/cases/`
 - `components/ui/`
-
----
-
-# First Recommended Task
-Build the primary application UI flows using mock fixtures from `/mocks`:
-1. Refine the Dashboard (`app/dashboard/page.tsx`) with real metric cards and active policy summaries.
-2. Build the interactive Policy Analysis screen rendering `PolicyCard` items from `mocks/policy-rules.json`.
-3. Build the Expense Case evaluation page with interactive input and immediate results display.
-
----
-
-# Definition of Done for First Milestone
-- [ ] Dashboard displays policy count, extracted rule count, workflow status, and recent cases.
-- [ ] Policy analysis screen renders extracted rule cards with clickable citation metadata (page, section, rule text).
-- [ ] Expense form accepts case parameters and immediately displays decision status (`APPROVED` or `ACTION_REQUIRED`), violations list, and grounded evidence.
-- [ ] UI is responsive and styled consistently with dark mode Tailwind CSS and Lucide icons.
-- [ ] All views work 100% reliably against mock data without requiring a backend or external database.
+- `components/session/`
+- `lib/client/`
 
 ---
 
 # Completed
-- Shared UI primitives initialized: `lib/utils.ts` (`cn`), `components/ui/button.tsx`.
-- Shared layout header: `components/layout/Navbar.tsx`.
-- Policy presentation component: `components/policy/PolicyCard.tsx`.
-- Case submission component: `components/cases/CaseForm.tsx`.
-- Starter pages created:
-  - `app/page.tsx`
-  - `app/dashboard/page.tsx`
-  - `app/policies/upload/page.tsx`
-  - `app/cases/page.tsx`
+1. **API & Error Layer**
+   - Created `lib/client/error.ts` for unified error normalization (converts raw API errors to displayable UI messages).
+   - Created `lib/client/rulepilot-api.ts` providing strongly-typed wrappers for all 6 core API endpoints.
+2. **Session State & Navigation**
+   - Created `components/session/SessionProvider.tsx` using `sessionStorage` for cross-page persistence.
+   - Updated `Navbar.tsx` and `app/layout.tsx` to utilize session context.
+3. **Visual Migration**
+   - Updated global styles and components to follow a dark, premium "cyber" B2B SaaS aesthetic (`bg-[#0a0f18]`, `border-[#2b5a6c]`, glows, Lucide icons).
+   - Polished the Dashboard to read dynamically from session state.
+4. **Upload Pipeline**
+   - Built a real 4-step pipeline in `app/policies/upload/page.tsx` that calls `api.documents.upload`, `process`, `extract`, and `generate`.
+5. **Policy Intelligence & Workflow Pages**
+   - Refactored `app/policies/page.tsx` to read deterministic rules from the session and display them elegantly.
+   - Refactored `app/workflows/page.tsx` to use the `WorkflowExecutionDemo` component provided by Member 4.
+6. **Expense Case & Actions Flow**
+   - Updated `CaseForm.tsx` to include all 12 `ExpenseCase` fields (including optional hotel inputs per ADR-008).
+   - Refactored `app/cases/page.tsx` to execute cases against `api.cases.execute` and display deterministic results.
 
 ---
 
 # In Progress
-No member-specific implementation is claimed yet. This is a starting template; update it after your first milestone.
+- Validation and bug fixing.
 
 ---
 
@@ -58,24 +51,31 @@ No member-specific implementation is claimed yet. This is a starting template; u
 - `app/page.tsx`
 - `app/dashboard/page.tsx`
 - `app/policies/upload/page.tsx`
+- `app/policies/page.tsx`
+- `app/workflows/page.tsx`
 - `app/cases/page.tsx`
-- `components/ui/button.tsx`
 - `components/layout/Navbar.tsx`
-- `components/policy/PolicyCard.tsx`
+- `components/policy/CitationModal.tsx`
 - `components/cases/CaseForm.tsx`
+- `components/session/SessionProvider.tsx` (NEW)
+- `lib/client/rulepilot-api.ts` (NEW)
+- `lib/client/error.ts` (NEW)
 
 ---
 
 # APIs / Interfaces Used
+- `api.documents.upload`, `api.documents.process`
+- `api.rules.extract`
+- `api.workflows.generate`
+- `api.cases.execute`
 - `PolicyRule`, `ExpenseCase`, `CaseResult`, `Citation` from `types/contracts.ts`
-- Mock datasets in `mocks/`
 
 ---
 
 # Important Decisions
-- Focus on serious B2B SaaS presentation (cards, badges, clean data tables, grounded evidence) rather than a chat interface.
-- Keep UI components decoupled so swapping mock data calls for real API calls requires zero UI refactoring.
-- **ADR-008 frozen:** optional form fields `hotelNightlyRate` and `hotelNights` for hotel/lodging claims. Do not invent alternate hotel field names. Non-hotel cases leave them undefined.
+- **Session State**: Instead of relying purely on URL params or re-fetching from a database, the frontend uses `SessionProvider` (backed by `sessionStorage`) to pass the active `documentId`, `rules`, and `workflow` between steps in the product funnel.
+- **Unified Error Handling**: Implemented a central error normalizer to ensure any backend failures are presented cleanly to the user.
+- **Aesthetic Direction**: Standardized on a dark cyber theme to create a premium, impressive first impression.
 
 ---
 
@@ -85,33 +85,16 @@ No member-specific implementation is claimed yet. This is a starting template; u
 
 ---
 
-# Test Results
-- Compilation passed.
-
----
-
-# Known Problems
-- None.
-
----
-
 # Dependencies on Other Members
-- None. Member 3 develops exclusively against `/mocks` and `/types/contracts.ts` during phase 1.
+- Relies on Member 1's backend routes being fully functional.
+- Relies on Member 4's `WorkflowExecutionDemo` component for the workflows page.
 
 ---
 
 # Next Exact Steps
-1. Add interactive state in app/cases/page.tsx using mocks/case-results.json; switch to ExecuteCaseRequest/Response when Member 1 implements the endpoint.
-2. Build Citation modal/drawer displaying the policy text snippet and page preview.
-3. Add drag-and-drop file upload handler in `app/policies/upload/page.tsx`.
+- Final handoff to integration.
 
 ---
 
 # Session History
-- **Setup Session:** Created app shell, navigation, starter pages, UI primitives, and form components.
-
-# Expected Output
-Mock product screens consume domain fixtures and mocks/case-results.json without service credentials or dependence on the partial engine.
-
-## Starting coordination
-Branch from accepted dev into feature/frontend. Follow docs/MEMBER_OWNERSHIP.md for shared files. Run lint, typecheck, tests and build before declaring the milestone complete; update this file after each meaningful step.
+- **Frontend Integration Session:** Merged previous frontend work with the final technical baseline, implemented real API wiring, standardized state management, and applied high-end visual polish across all core views.

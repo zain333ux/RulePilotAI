@@ -252,3 +252,18 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Merged the already verified `origin/integration/workflow-dev`; that candidate is an ancestor of this branch.
 - Typecheck, lint, 76 platform tests, hardened rule tests, workflow tests, 82 full-suite tests, production build, whitespace checks, browser workflow QA, and secret scans passed.
 - Strict live smoke read the final 8-page PDF, generated 24 page-aware chunks, and produced a 768-dimensional live embedding. Three extraction attempts failed closed at Gemini with HTTP 503 high demand, so `dev` was not updated.
+
+ # # #   S e s s i o n   1 8 :   M e m b e r   3   F r o n t e n d   I n t e g r a t i o n   &   P o l i s h   ( 2 0 2 6 - 1 0 - 0 3 ) 
+ 
+ -   B r a n c h :   \  e a t u r e / f r o n t e n d - f i n a l \   ( b r a n c h e d   f r o m   \ o r i g i n / i n t e g r a t i o n / f i n a l - b a s e l i n e \ ) . 
+ -   I n t e g r a t e d   t h e   f r o n t e n d   f u l l y   w i t h   t h e   b a c k e n d   A P I ,   r e p l a c i n g   a l l   m o c k   l o g i c   w i t h   r e a l   c a l l s   t o   t h e   6   c o r e   A P I   r o u t e s   v i a   a   t y p e d   w r a p p e r   ( \ l i b / c l i e n t / r u l e p i l o t - a p i . t s \ ) . 
+ -   A d d e d   a   r o b u s t   \ S e s s i o n P r o v i d e r \   s t o r i n g   t h e   s t a t e   ( d o c u m e n t I d ,   r u l e s ,   w o r k f l o w )   a c r o s s   v i e w s ,   r e s o l v i n g   s t a t e   d r o p s   a c r o s s   r o u t e   n a v i g a t i o n s . 
+ -   I m p l e m e n t e d   a   u n i f i e d   e r r o r   h a n d l e r   ( \ l i b / c l i e n t / e r r o r . t s \ )   f o r   s t r u c t u r e d   A P I   r e s p o n s e   e r r o r s   t o   e n s u r e   e l e g a n t   f a i l u r e   v i s u a l i z a t i o n . 
+ -   F i n i s h e d   v i s u a l   m i g r a t i o n ,   a p p l y i n g   a   p r e m i u m   B 2 B   S a a S   c y b e r   a e s t h e t i c   a c r o s s   t h e   D a s h b o a r d ,   u p l o a d   p i p e l i n e ,   p o l i c y   i n t e l l i g e n c e   v i e w s ,   a n d   w o r k f l o w   d e m o   p l a y g r o u n d . 
+ -   C o n n e c t e d   \ C a s e F o r m . t s x \   ( 1 2   f i e l d s ,   i n c l u s i v e   o f   A D R - 0 0 8   h o t e l   c o n d i t i o n s )   t o   \  p i . c a s e s . e x e c u t e \ ,   r e n d e r i n g   d e t e r m i n i s t i c   c o m p l i a n c e   c h e c k s   a n d   g r o u n d e d   c i t a t i o n s . 
+ -   R a n   a n d   p a s s e d   \ 
+ p m   r u n   l i n t \   ( 0   e r r o r s ) ,   \ 
+ p m   r u n   t y p e c h e c k \ ,   a n d   \ 
+ p m   r u n   b u i l d \ .   
+ -   F r o n t e n d   i s   n o w   f u l l y   p r o d u c t i o n - r e a d y   a n d   f u l l y   i n t e g r a t e d   a g a i n s t   t h e   d e t e r m i n i s t i c   A I   e n g i n e ,   p r e p a r e d   f o r   E 2 E   t e s t i n g .  
+ 

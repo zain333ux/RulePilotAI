@@ -1,5 +1,3 @@
-import { ApiError } from "@/types/api";
-
 export class RulePilotClientError extends Error {
   public code: string;
   public details?: string;
@@ -15,7 +13,7 @@ export class RulePilotClientError extends Error {
 export function normalizeApiError(error: unknown, defaultMessage = "RulePilot is temporarily unavailable. Please try again."): string {
   if (error instanceof RulePilotClientError) {
     // Convert known backend code/errors into customer-friendly UI text
-    if (error.code === "503" || error.message.includes("503")) {
+    if (error.code === "503" || error.code === "PROVIDER_UNAVAILABLE" || error.message.includes("503")) {
       return "Policy analysis is temporarily unavailable due to high demand. Please try again.";
     }
     if (error.code === "DOCUMENT_UNREADABLE") {

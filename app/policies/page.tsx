@@ -9,17 +9,20 @@ import { PolicyRule } from "@/types/contracts";
 
 export default function PoliciesPage() {
   const { session } = useSession();
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copyState, setCopyState] = useState<{ id: string; status: "copied" | "error" } | null>(null);
   
   const rules = session.rules || [];
   const documentName = session.documentName || "Unknown Document";
 
-  const handleCopyLogic = (rule: PolicyRule) => {
+  const handleCopyLogic = async (rule: PolicyRule) => {
     const logicString = `if (${rule.field} ${rule.operator} ${rule.value}) { action = '${rule.action}' }`;
-    navigator.clipboard.writeText(logicString).then(() => {
-      setCopiedId(rule.id);
-      setTimeout(() => setCopiedId(null), 2000);
-    });
+    try {
+      await navigator.clipboard.writeText(logicString);
+      setCopyState({ id: rule.id, status: "copied" });
+    } catch {
+      setCopyState({ id: rule.id, status: "error" });
+    }
+    setTimeout(() => setCopyState(null), 2000);
   };
 
   return (
@@ -143,8 +146,8 @@ export default function PoliciesPage() {
                      </div>
                      
                      <div className="mt-4 pt-3 border-t border-[#2b5a6c]/20 flex justify-end">
-                       <button onClick={() => handleCopyLogic(rule)} className={`${copiedId === rule.id ? 'text-emerald-400' : 'text-slate-500 hover:text-white'} transition-colors flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold`} title="Copy Logic">
-                         {copiedId === rule.id ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy Logic</>}
+                       <button onClick={() => handleCopyLogic(rule)} className={`${copyState?.id === rule.id && copyState.status === "copied" ? 'text-emerald-400' : copyState?.id === rule.id && copyState.status === "error" ? 'text-rose-400' : 'text-slate-500 hover:text-white'} transition-colors flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold`} title="Copy Logic">
+                         {copyState?.id === rule.id && copyState.status === "copied" ? <><Check className="w-3 h-3" /> Copied</> : copyState?.id === rule.id && copyState.status === "error" ? "Copy failed" : <><Copy className="w-3 h-3" /> Copy Logic</>}
                        </button>
                      </div>
                   </div>

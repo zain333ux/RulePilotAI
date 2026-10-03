@@ -4,7 +4,7 @@
 ---
 
 # Current Objective
-Integrate the frontend with the final technical baseline (origin/integration/final-baseline), replacing mocks with real API calls, establishing a session-based state manager, and applying a polished B2B SaaS cyber aesthetic.
+Prepare the completed product frontend for release from `feature/frontend-final`, preserving the verified backend and strict live-provider gate.
 
 ---
 
@@ -43,7 +43,7 @@ Integrate the frontend with the final technical baseline (origin/integration/fin
 ---
 
 # In Progress
-- Handoff complete.
+- Preview deployment and deployed browser verification. Production promotion remains gated on a successful strict Gemini smoke and deployed end-to-end flow.
 
 ---
 
@@ -94,17 +94,18 @@ Integrate the frontend with the final technical baseline (origin/integration/fin
 ---
 
 # Dependencies on Other Members
-- Relies on Member 1's backend routes being fully functional (currently working flawlessly).
-- Relies on Member 4's `WorkflowExecutionDemo` component for the workflows page (currently working flawlessly).
+- Uses Member 1's six real backend routes and Member 2's strict AI/rule modules from the final baseline.
+- Uses Member 4's `WorkflowExecutionDemo` component for the workflows page.
 - Requires `.env.local` to be fully populated by the host to enable Supabase interaction.
 
 ---
 
 # Next Exact Steps
-- Final suite validations are complete, the work has been pushed to `feature/frontend-final`, and it's ready for `integration/review` -> `dev` -> `main`.
+- Push the reviewed release fixes, create a Vercel preview, and run deployed product verification. Promote to `dev` and `main` only after every required release gate passes.
 
 ---
 
 # Session History
 - **Frontend Integration Session:** Merged previous frontend work with the final technical baseline, implemented real API wiring, standardized state management, and applied high-end visual polish across all core views. Removed all hard-coded mock workflows and cases to respect the true backend logic.
 - **Final Polish Session:** Fixed the critical case execution bug (`workflowId` instead of `documentId`), enabled next-action generation, polished the UI, implemented a mobile hamburger menu, cleaned up the copy, passed all lint, build, and test steps, and pushed to `feature/frontend-final` branch.
+- **Release Readiness Session (2026-10-04):** Cleared stale case IDs before new evaluations, added numeric input constraints, added copy failure feedback, restored `unpdf` 1.7.0, reviewed customer copy, and revalidated all automated suites. Local route and mobile QA passed without console errors. The strict final-policy smoke again reached real Gemini extraction, but provider HTTP 503 responses kept production promotion gated.

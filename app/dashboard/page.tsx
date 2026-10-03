@@ -129,7 +129,7 @@ export default function DashboardPage() {
                 </h3>
                 {session.documentId ? (
                   <p className="text-sm text-slate-400">
-                    <span className="text-white font-medium">{session.documentName || "Policy Document"}</span> is currently governing the engine.
+                    <span className="text-white font-medium">{session.documentName || "Policy Document"}</span> is the active policy for new decisions.
                   </p>
                 ) : (
                   <p className="text-sm text-slate-400">No active policy uploaded.</p>
@@ -170,7 +170,7 @@ export default function DashboardPage() {
                   ))}
                   {extractedRules > 3 && (
                     <div className="text-center pt-2">
-                      <p className="text-xs text-slate-500">+ {extractedRules - 3} more rules loaded in the engine</p>
+                      <p className="text-xs text-slate-500">+ {extractedRules - 3} more active policy rules</p>
                     </div>
                   )}
                 </div>

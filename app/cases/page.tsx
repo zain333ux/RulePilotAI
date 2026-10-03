@@ -41,6 +41,7 @@ export default function CasesPage() {
     setIsEvaluating(true);
     setError(null);
     updateSession({
+      latestCaseId: undefined,
       latestCaseResult: undefined,
       latestAction: undefined,
       latestTemplate: undefined
@@ -220,8 +221,8 @@ export default function CasesPage() {
                 </h3>
                 <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
                   {isEvaluating 
-                    ? "The engine is currently parsing your input against the loaded policy rules." 
-                    : "Fill out the form and submit a case to see the engine's decision based on the extracted rules."}
+                    ? "RulePilot is comparing your claim with the active policy rules."
+                    : "Fill out the form and submit a case to see the policy decision and supporting evidence."}
                 </p>
               </div>
             )}

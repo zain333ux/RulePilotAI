@@ -5,24 +5,24 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 ## CURRENT STATE
 
 - Project: RulePilot AI.
-- Phase: final backend, AI-hardening, and workflow baseline candidate assembled; promotion to `dev` is waiting on the strict live smoke gate.
-- Current branch: `integration/final-baseline`, created from `origin/dev` at `65fcc500a16c47f0123e55b7134aaf67e51e0e35`, with Member 2 hardening commit `4941563c6a67b60e8c2a8c7af27d17857b120eb3` cherry-picked and `origin/integration/workflow-dev` merged. `dev` and `main` remain unchanged.
-- Working architecture: one root Next.js 16.3.8 application. All six routes use server-side Storage/repositories and Member 2 domain exports. AI extraction rejects duplicate IDs and unsupported fields; strict demo validation remains separate from generic extraction. The workflow surface accepts `WorkflowDefinition` and runs a clearly labelled mock execution simulation through a central controller.
-- Completed by area: **Backend â€” COMPLETE and previously live verified. AI/RAG â€” implementation and hardening COMPLETE; strict re-smoke currently provider-blocked. Workflow UX â€” COMPLETE and browser verified.**
-- Unfinished: Member 3 product-level frontend integration with real API responses, final visual polish, full browser E2E, deployment readiness, and optional webhook dispatch from the action route.
-- Known blockers: strict final-policy re-smoke reached live Gemini extraction three times but the provider returned HTTP 503 high demand each time. PDF extraction, 24 chunks, and the live 768-dimensional embedding passed. Do not promote this candidate to `dev` until the strict smoke completes. Seven duplicate document records remain untouched; no cleanup is authorized.
+- Phase: final product release candidate assembled on `feature/frontend-final`; preview deployment and deployed verification remain.
+- Current branch: `feature/frontend-final`, based on the validated `integration/final-baseline`. `dev` and `main` have not been promoted during the current release review.
+- Working architecture: one root Next.js 16.3.8 application. The product frontend calls all six real API routes, keeps the active browser session in `sessionStorage`, renders persisted policy rules and workflows, executes deterministic cases, and generates saved next actions. Server routes retain private Storage, repositories, atomic replacement RPCs, and Member 2 domain exports.
+- Completed by area: **Backend - COMPLETE and previously live verified. AI/RAG - COMPLETE and hardened. Workflow UX - COMPLETE. Product frontend - COMPLETE and locally validated.**
+- Unfinished: Vercel preview deployment, deployed browser end-to-end verification, final branch promotion, production deployment, and optional webhook dispatch from the action route.
+- Known blockers: the 2026-10-04 strict final-policy smoke parsed all eight pages, generated 24 chunks, and produced a live 768-dimensional embedding, but Gemini extraction returned transient HTTP 503 high-demand responses and did not complete steps 7-12. Keep production promotion gated. Seven duplicate document records remain untouched; no cleanup is authorized.
 - Known limitations: webhook dispatch remains disabled and `webhookTriggered` is always false. Case creation and result insertion are separate repository operations, so a result-insert failure can leave a persisted case without a result; the route returns 500 and logs the case ID. Use static expected result fixtures for mock UI until branches are integrated.
 - Decisions: LLM interprets policy; deterministic code executes rules. Member 1 owns every route. Workflow/case IDs bind rules and decisions to their documents. Server-only secret modules; private policy storage and server-only DB access baseline. See ADR-010 through ADR-012.
 - Environment: no credentials needed for build/unit tests. Server-only GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY and optional MAKE_WEBHOOK_URL; public NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY. All `.env*` files are ignored except `.env.example`. Supabase credentials are configured locally and the live upload was manually verified; never print or commit them.
 - Database: live schema, pgvector, service-role access, private Storage, and both atomic RPCs are verified. The final live record has 24 chunks, six rules, one generated workflow, five cases, and five case results with correct relationships.
 - API: all six routes are implemented and verified live in order against the final policy PDF. Provider-dependent routes fail closed with structured errors.
 - Contract status: types/contracts.ts unchanged by this review. Additive types/api.ts formalizes transport envelopes; changes recorded in ADR-010. Mock citations are authored fictional demo references, never live PDF evidence.
-- Packages: existing dependencies retained; `unpdf` 1.7.x is included for Member 2's digital PDF parser.
+- Packages: existing dependencies retained; `unpdf` is restored to the verified 1.7.0 lock for Member 2's digital PDF parser.
 - Tests: credential-free tests cover all six routes, repositories, domain rules, fixtures, malformed workflows, layout, dynamic traversal, reset behavior, failure isolation, and webhook reliability.
 - Validation: complete live pipeline passed on document `302136c4-e986-417d-a888-ea598f24b245`: 8 pages, 24 chunks, six grounded rules, workflow `e4288c91-494e-44b4-a9b1-5e197ce130fa` with 14 nodes/19 edges, five expected case decisions, and action drafts. Final automated totals are in Member 1 progress.
 - Last verified working commands: `npm run typecheck`; `npm run lint`; `npm run test:platform`; `npm run test:rules`; `npm run test:workflow`; `npm test`; `npm run build`; `git diff --check`.
-- Exact next task: rerun the strict final-policy smoke when Gemini extraction is available; if it passes, fast-forward `dev` to the reviewed final candidate and hand the baseline to Member 3.
-- Parallel readiness: code and automated validation are ready, but the final `dev` promotion is intentionally blocked by the required live smoke gate.
+- Exact next task: push `feature/frontend-final`, deploy a Vercel preview with the required environment variables, and verify the deployed routes. Promote `dev`, `main`, and production only after the strict smoke and deployed end-to-end gates pass.
+- Parallel readiness: the release candidate is ready for preview review. Production promotion remains intentionally blocked by the strict provider gate.
 
 ### Backend consumption contract
 
@@ -178,6 +178,15 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Connected WorkflowGraph to /workflows using existing mock data.
 - Added five custom node designs, branching layout, arrow labels
   and selected-node styling.
+
+### Session 18: Frontend release readiness (2026-10-04)
+
+- Reviewed `feature/frontend-final` against `integration/final-baseline`; no API, repository, Supabase, AI, RAG, embedding, rule-engine, migration, or shared-contract files changed.
+- Cleared `latestCaseId` before new case evaluation, constrained numeric inputs, added explicit clipboard failure feedback, and simplified customer-facing copy.
+- Restored `unpdf` to the verified 1.7.0 package and lockfile entry.
+- Passed typecheck, platform/rule/workflow/full tests, production build, and whitespace validation. ESLint reported no errors and one pre-existing image optimization advisory.
+- Local browser QA covered all product routes, mobile navigation, empty states, and console checks. No browser errors or hydration errors were observed.
+- Strict live AI smoke remained blocked at Gemini extraction by transient provider HTTP 503 responses after PDF parsing, 24 chunks, and a 768-dimensional embedding passed. No fallback data or weaker validation was introduced.
 - npm test, npm run build and npm run lint passed.
 - Production build TypeScript check passed.
 - Updated browser interaction checks still need confirmation.

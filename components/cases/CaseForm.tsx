@@ -65,7 +65,7 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
             <Activity className="w-5 h-5 text-[#4bbabc]" /> Expense Claim Input
           </h3>
           <p className="text-sm text-slate-400 mt-2 leading-relaxed">
-            Fill out the details of the business case. The engine will evaluate this data against the extracted rules.
+            Fill out the expense claim. RulePilot will evaluate it against the extracted policy rules.
           </p>
         </div>
         <button
@@ -115,6 +115,7 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
           <input
             id="amount"
             type="number"
+            min={0}
             className="w-full bg-[#0a0f18]/80 border border-[#2b5a6c]/50 rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:border-[#4bbabc] focus:shadow-[0_0_15px_rgba(75,186,188,0.2)] transition-all placeholder-slate-500"
             value={formData.amount || ""}
             onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
@@ -160,6 +161,7 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
               <input
                 id="hotelNightlyRate"
                 type="number"
+                min={0}
                 className="w-full bg-[#0a0f18]/80 border border-[#2b5a6c]/50 rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:border-[#4bbabc] focus:shadow-[0_0_15px_rgba(75,186,188,0.2)] transition-all placeholder-slate-600"
                 placeholder="e.g. 25000"
                 value={formData.hotelNightlyRate || ""}
@@ -174,6 +176,8 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
               <input
                 id="hotelNights"
                 type="number"
+                min={1}
+                step={1}
                 className="w-full bg-[#0a0f18]/80 border border-[#2b5a6c]/50 rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:border-[#4bbabc] focus:shadow-[0_0_15px_rgba(75,186,188,0.2)] transition-all placeholder-slate-600"
                 placeholder="e.g. 3"
                 value={formData.hotelNights || ""}

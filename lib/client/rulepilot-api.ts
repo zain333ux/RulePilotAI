@@ -14,7 +14,7 @@ async function fetchApi<T>(url: string, options: RequestInit): Promise<T> {
   let response: Response;
   try {
     response = await fetch(url, options);
-  } catch (error) {
+  } catch {
     throw new Error("Network error");
   }
 

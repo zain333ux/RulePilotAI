@@ -181,7 +181,7 @@ export default function HomePage() {
             </div>
             <h3 className="text-[17px] font-bold text-white mb-3 tracking-wide">Consistent Decisions</h3>
             <p className="text-[15px] text-[#8e98ac] leading-[1.6]">
-              Deploy auditable decision-making pipelines that guarantee consistent compliance and reliable outcomes based directly on your rules.
+              Apply auditable policy rules consistently and show the evidence behind every decision.
             </p>
           </div>
 

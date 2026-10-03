@@ -43,7 +43,7 @@ Prepare the completed product frontend for release from `feature/frontend-final`
 ---
 
 # In Progress
-- Preview deployment and deployed browser verification. Production promotion remains gated on a successful strict Gemini smoke and deployed end-to-end flow.
+- No release-blocking frontend work remains.
 
 ---
 
@@ -101,7 +101,7 @@ Prepare the completed product frontend for release from `feature/frontend-final`
 ---
 
 # Next Exact Steps
-- Push the reviewed release fixes, create a Vercel preview, and run deployed product verification. Promote to `dev` and `main` only after every required release gate passes.
+- Rehearse the complete production demo at `https://rulepilot-ai.vercel.app` and preserve `main` as the release baseline.
 
 ---
 
@@ -109,3 +109,4 @@ Prepare the completed product frontend for release from `feature/frontend-final`
 - **Frontend Integration Session:** Merged previous frontend work with the final technical baseline, implemented real API wiring, standardized state management, and applied high-end visual polish across all core views. Removed all hard-coded mock workflows and cases to respect the true backend logic.
 - **Final Polish Session:** Fixed the critical case execution bug (`workflowId` instead of `documentId`), enabled next-action generation, polished the UI, implemented a mobile hamburger menu, cleaned up the copy, passed all lint, build, and test steps, and pushed to `feature/frontend-final` branch.
 - **Release Readiness Session (2026-10-04):** Cleared stale case IDs before new evaluations, added numeric input constraints, added copy failure feedback, restored `unpdf` 1.7.0, reviewed customer copy, and revalidated all automated suites. Local route and mobile QA passed without console errors. The strict final-policy smoke again reached real Gemini extraction, but provider HTTP 503 responses kept production promotion gated.
+- **Production Release Session (2026-10-04):** Updated the Vercel environment, passed the strict 12-step final-policy smoke, completed the deployed upload-to-action flow, verified copy feedback and browser logs, promoted `dev` and `main` by fast-forward, and deployed the validated `main` commit to production.

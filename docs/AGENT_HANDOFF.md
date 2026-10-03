@@ -5,12 +5,12 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 ## CURRENT STATE
 
 - Project: RulePilot AI.
-- Phase: final product release candidate assembled on `feature/frontend-final`; preview deployment and deployed verification remain.
-- Current branch: `feature/frontend-final`, based on the validated `integration/final-baseline`. `dev` and `main` have not been promoted during the current release review.
+- Phase: hackathon release complete and deployed.
+- Current branch: `main`; `main` and `dev` contain the validated product source at `2f0e58c60cf61ad522eb035647099fbf1aa6b2b2` before this documentation-only release record.
 - Working architecture: one root Next.js 16.3.8 application. The product frontend calls all six real API routes, keeps the active browser session in `sessionStorage`, renders persisted policy rules and workflows, executes deterministic cases, and generates saved next actions. Server routes retain private Storage, repositories, atomic replacement RPCs, and Member 2 domain exports.
-- Completed by area: **Backend - COMPLETE and previously live verified. AI/RAG - COMPLETE and hardened. Workflow UX - COMPLETE. Product frontend - COMPLETE and locally validated.**
-- Unfinished: Vercel preview deployment, deployed browser end-to-end verification, final branch promotion, production deployment, and optional webhook dispatch from the action route.
-- Known blockers: the 2026-10-04 strict final-policy smoke parsed all eight pages, generated 24 chunks, and produced a live 768-dimensional embedding, but Gemini extraction returned transient HTTP 503 high-demand responses and did not complete steps 7-12. Keep production promotion gated. Seven duplicate document records remain untouched; no cleanup is authorized.
+- Completed by area: **Backend - COMPLETE. AI/RAG - COMPLETE and hardened. Workflow UX - COMPLETE. Product frontend - COMPLETE. Vercel production deployment - COMPLETE and verified.**
+- Unfinished: optional webhook dispatch from the action route and known non-blocking dependency/image optimization advisories.
+- Known blockers: none for the hackathon demo. Gemini can still return transient quota or availability errors; the UI fails closed and supports retry. Seven duplicate document records remain untouched; no cleanup is authorized.
 - Known limitations: webhook dispatch remains disabled and `webhookTriggered` is always false. Case creation and result insertion are separate repository operations, so a result-insert failure can leave a persisted case without a result; the route returns 500 and logs the case ID. Use static expected result fixtures for mock UI until branches are integrated.
 - Decisions: LLM interprets policy; deterministic code executes rules. Member 1 owns every route. Workflow/case IDs bind rules and decisions to their documents. Server-only secret modules; private policy storage and server-only DB access baseline. See ADR-010 through ADR-012.
 - Environment: no credentials needed for build/unit tests. Server-only GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY and optional MAKE_WEBHOOK_URL; public NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY. All `.env*` files are ignored except `.env.example`. Supabase credentials are configured locally and the live upload was manually verified; never print or commit them.
@@ -19,10 +19,10 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 - Contract status: types/contracts.ts unchanged by this review. Additive types/api.ts formalizes transport envelopes; changes recorded in ADR-010. Mock citations are authored fictional demo references, never live PDF evidence.
 - Packages: existing dependencies retained; `unpdf` is restored to the verified 1.7.0 lock for Member 2's digital PDF parser.
 - Tests: credential-free tests cover all six routes, repositories, domain rules, fixtures, malformed workflows, layout, dynamic traversal, reset behavior, failure isolation, and webhook reliability.
-- Validation: complete live pipeline passed on document `302136c4-e986-417d-a888-ea598f24b245`: 8 pages, 24 chunks, six grounded rules, workflow `e4288c91-494e-44b4-a9b1-5e197ce130fa` with 14 nodes/19 edges, five expected case decisions, and action drafts. Final automated totals are in Member 1 progress.
+- Validation: the strict final-policy smoke passed all 12 checks with 8 pages, 24 chunks, a 768-dimensional embedding, six grounded rules, and a 14-node/19-edge workflow. The deployed browser flow completed upload/process/extract/workflow/case/action generation. Final production API smoke used document `7706bca2-fd11-40a9-8c74-c79d527ab66f`, workflow `7c7d0f59-0058-4220-b2c7-1eff07fdf479`, and approved case `3e48f24e-3f1f-488a-a651-f1ab03d7a98b`.
 - Last verified working commands: `npm run typecheck`; `npm run lint`; `npm run test:platform`; `npm run test:rules`; `npm run test:workflow`; `npm test`; `npm run build`; `git diff --check`.
-- Exact next task: push `feature/frontend-final`, deploy a Vercel preview with the required environment variables, and verify the deployed routes. Promote `dev`, `main`, and production only after the strict smoke and deployed end-to-end gates pass.
-- Parallel readiness: the release candidate is ready for preview review. Production promotion remains intentionally blocked by the strict provider gate.
+- Exact next task: rehearse the hackathon demo using the production application at `https://rulepilot-ai.vercel.app`.
+- Parallel readiness: `main` is the production baseline; `dev` is aligned for any post-demo fixes.
 
 ### Backend consumption contract
 
@@ -187,6 +187,14 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Passed typecheck, platform/rule/workflow/full tests, production build, and whitespace validation. ESLint reported no errors and one pre-existing image optimization advisory.
 - Local browser QA covered all product routes, mobile navigation, empty states, and console checks. No browser errors or hydration errors were observed.
 - Strict live AI smoke remained blocked at Gemini extraction by transient provider HTTP 503 responses after PDF parsing, 24 chunks, and a 768-dimensional embedding passed. No fallback data or weaker validation was introduced.
+
+### Session 19: Production release (2026-10-04)
+
+- Configured the four required Vercel variables for Preview and Production without committing or printing their values.
+- Deployed the validated source, then diagnosed one transient extraction failure from runtime evidence. The replacement key passed the strict 12-step smoke without code changes.
+- Retried the deployed document successfully: six grounded rules, 14 workflow steps, 19 connections, an approved deterministic case, and a generated action/message. Copy feedback worked and browser logs were clean.
+- Fast-forwarded `dev` and `main` to the validated release source, reran production-source typecheck, lint, 82 tests, build, and whitespace checks, and deployed `main` to Vercel Production.
+- Production routes return HTTP 200. The final case/action API smoke passed and Vercel reported no runtime error clusters.
 - npm test, npm run build and npm run lint passed.
 - Production build TypeScript check passed.
 - Updated browser interaction checks still need confirmation.

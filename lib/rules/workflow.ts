@@ -11,27 +11,22 @@ export class WorkflowGenerationError extends Error {
  * Format a human-readable condition label from a PolicyRule.
  */
 function formatConditionLabel(rule: PolicyRule): string {
-  const fieldNames: Record<string, string> = {
-    amount: "Amount",
-    hotelNightlyRate: "Hotel Nightly Rate",
-    expenseDate: "Submission Window",
-    submissionDate: "Submission Window",
-    internationalTravel: "International Travel",
-  };
-
-  const field = fieldNames[rule.field] || rule.field;
-  const val = typeof rule.value === "number" ? `PKR ${rule.value.toLocaleString()}` : String(rule.value);
-
-  if (rule.field === "amount" || rule.field === "hotelNightlyRate") {
-    return `${field} ${rule.operator} ${val}?`;
+  if (rule.id === "EXP-005" || rule.field === "submissionWindowDays") {
+    return "Submission Delay > 14 Days?";
   }
-  if (rule.field === "internationalTravel") {
+  if (rule.id === "EXP-006" || rule.field === "internationalTravel") {
     return "International Travel Claim?";
   }
-  if (rule.id === "EXP-005") {
-    return "Submitted within 14 Calendar Days?";
+  if (rule.id === "EXP-004" || rule.field === "hotelNightlyRate") {
+    return "Hotel Nightly Rate > PKR 25,000?";
+  }
+  if (rule.field === "amount") {
+    const val = typeof rule.value === "number" ? rule.value.toLocaleString() : String(rule.value);
+    return `Amount ${rule.operator} PKR ${val}?`;
   }
 
+  const field = rule.field;
+  const val = typeof rule.value === "number" ? rule.value.toLocaleString() : String(rule.value);
   return `${rule.name || field} ${rule.operator} ${val}?`;
 }
 
@@ -154,12 +149,29 @@ export function generateWorkflowFromRules(
     const valFormatted =
       typeof rule.value === "number" ? rule.value.toLocaleString() : String(rule.value);
 
+    let yesLabel: string;
+    let noLabel: string;
+
+    if (rule.id === "EXP-005" || rule.field === "submissionWindowDays") {
+      yesLabel = "Yes (> 14 Days)";
+      noLabel = "No (<= 14 Days)";
+    } else if (rule.id === "EXP-006" || rule.field === "internationalTravel") {
+      yesLabel = "Yes (Requires Pre-Approval)";
+      noLabel = "No (Domestic / Pre-Approved)";
+    } else if (rule.operator === ">") {
+      yesLabel = `Yes (> ${valFormatted})`;
+      noLabel = `No (<= ${valFormatted})`;
+    } else {
+      yesLabel = `Yes (${rule.operator} ${valFormatted})`;
+      noLabel = "No (Compliant)";
+    }
+
     // Yes edge: condition -> action/approval
     edges.push({
       id: `edge-${edgeIndex++}`,
       source: condNodeId,
       target: actionNodeId,
-      label: `Yes (${rule.operator} ${valFormatted})`,
+      label: yesLabel,
     });
 
     // No edge: condition -> next step
@@ -167,7 +179,7 @@ export function generateWorkflowFromRules(
       id: `edge-${edgeIndex++}`,
       source: condNodeId,
       target: nextTargetId,
-      label: `No (Compliant)`,
+      label: noLabel,
     });
 
     // Progression edge: action/approval -> next step

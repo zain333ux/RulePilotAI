@@ -26,6 +26,11 @@ export function AgentTimeline({ steps }: AgentTimelineProps) {
                 </span>
               </div>
               <p className="text-xs text-zinc-400 mt-0.5">{step.description}</p>
+              {step.error && (
+                <div className="mt-1.5 rounded border border-rose-900/60 bg-rose-950/40 px-2 py-1 text-xs text-rose-300 font-mono">
+                  {step.error}
+                </div>
+              )}
             </div>
           </div>
         ))}

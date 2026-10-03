@@ -5,11 +5,11 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 ## CURRENT STATE
 
 - Project: RulePilot AI.
-- Phase: backend API integration and live end-to-end verification complete.
-- Current branch: `integration/backend-dev`, created from latest `origin/dev` and fast-forwarded to the verified backend integration. `dev` and `main` remain unchanged.
-- Working architecture: one root Next.js 16.3.8 application. All six routes use server-side Storage/repositories and Member 2 domain exports; the three policy-pipeline routes now replace their 501 scaffolds.
-- Completed: shared foundation, live Supabase/storage, repositories, atomic rule/chunk replacement, upload, policy processing wiring, page-aware rule extraction wiring, workflow persistence, case execution, action generation, and credential-free route coverage.
-- Unfinished: connected product UI, workflow renderer, optional automation, and integration-lead merge into `dev`.
+- Phase: verified backend on `dev`; completed workflow and agent UX merged into an isolated integration candidate.
+- Current branch: `integration/workflow-dev`, created from `origin/dev` at `65fcc500a16c47f0123e55b7134aaf67e51e0e35` and merged with `origin/feature/workflow-completion`. `dev` and `main` remain unchanged during review.
+- Working architecture: one root Next.js 16.3.8 application. All six routes use server-side Storage/repositories and Member 2 domain exports. The workflow surface accepts `WorkflowDefinition` and runs a clearly labelled mock execution simulation through a central controller.
+- Completed: shared foundation, live Supabase/storage, repositories, atomic rule/chunk replacement, all six backend APIs, live backend verification, workflow renderer, synchronized graph/timeline execution UX, dynamic traversal, reset behavior, and optional webhook failure isolation.
+- Unfinished: product-level frontend integration with real API responses and optional webhook dispatch from the action route.
 - Known blockers: no backend pipeline blocker. Seven duplicate document records from failed verification attempts remain because automatic approval review rejected permanent cleanup without explicit deletion authorization.
 - Known limitations: webhook dispatch remains disabled and `webhookTriggered` is always false. Case creation and result insertion are separate repository operations, so a result-insert failure can leave a persisted case without a result; the route returns 500 and logs the case ID. Use static expected result fixtures for mock UI until branches are integrated.
 - Decisions: LLM interprets policy; deterministic code executes rules. Member 1 owns every route. Workflow/case IDs bind rules and decisions to their documents. Server-only secret modules; private policy storage and server-only DB access baseline. See ADR-010 through ADR-012.
@@ -18,11 +18,11 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 - API: all six routes are implemented and verified live in order against the final policy PDF. Provider-dependent routes fail closed with structured errors.
 - Contract status: types/contracts.ts unchanged by this review. Additive types/api.ts formalizes transport envelopes; changes recorded in ADR-010. Mock citations are authored fictional demo references, never live PDF evidence.
 - Packages: existing dependencies retained; `unpdf` 1.7.x is included for Member 2's digital PDF parser.
-- Tests: credential-free tests cover all six routes, repositories, domain rules, fixtures, and workflow structure. The three new routes add 26 focused tests.
+- Tests: credential-free tests cover all six routes, repositories, domain rules, fixtures, malformed workflows, layout, dynamic traversal, reset behavior, failure isolation, and webhook reliability.
 - Validation: complete live pipeline passed on document `302136c4-e986-417d-a888-ea598f24b245`: 8 pages, 24 chunks, six grounded rules, workflow `e4288c91-494e-44b4-a9b1-5e197ce130fa` with 14 nodes/19 edges, five expected case decisions, and action drafts. Final automated totals are in Member 1 progress.
-- Last verified working commands: `npm run typecheck`; `npm run lint`; `npm run test:platform`; `npm test`; `npm run build`.
-- Exact next task: integration lead reviews `integration/platform-ai` and decides whether to merge it into `dev`.
-- Parallel readiness: yes; the backend MVP is verified live. Frontend/workflow/automation members can integrate against the documented contracts.
+- Last verified working commands: `npm run typecheck`; `npm run lint`; `npm run test:platform`; `npm run test:rules`; `npm run test:workflow`; `npm test`; `npm run build`; `git diff --check`.
+- Exact next task: review `integration/workflow-dev`, then integrate that candidate into `dev` only after approval.
+- Parallel readiness: yes; the backend MVP is verified live and the workflow renderer is ready to consume real `WorkflowDefinition` responses. Member 3 still owns product-level API wiring.
 
 ### Backend consumption contract
 
@@ -172,3 +172,74 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Confirmed all six routes remain real, shared contracts are unchanged, tracked files contain no configured secret values, and `.env.local` remains ignored.
 - Added concise Member 3 and Member 4 consumption guidance. Full credential-independent validation and production build passed; no live data was changed.
 
+### Member 4 Workflow Update — 2026-10-03
+
+- Implemented locally on feature/workflow; not yet merged into dev.
+- Connected WorkflowGraph to /workflows using existing mock data.
+- Added five custom node designs, branching layout, arrow labels
+  and selected-node styling.
+- npm test, npm run build and npm run lint passed.
+- Production build TypeScript check passed.
+- Updated browser interaction checks still need confirmation.
+- Shared contracts, fixtures and API behavior unchanged.
+- Next: verify browser interactions, then add an AgentTimeline
+  mock preview for waiting, running, completed and failed states.
+  ### Member 4 Timeline Preview — 2026-10-03
+
+- Added labelled mock timeline preview on /workflows.
+- All four states confirmed in browser.
+- Tests and production build passed.
+- No live processing or webhook dispatch added.
+- Next: lint verification, then controlled mock timeline simulation.
+
+### Member 4 Mock Simulation — 2026-10-03
+
+- Added controlled mock timeline with run/reset/failure controls.
+- Browser confirmed success and optional automation failure paths.
+- Production build passed; lint/tests and mid-run Reset verification pending.
+- No live processing or webhook requests added.
+
+### Member 4 Synchronized Traversal & Dynamic Workflow QA — 2026-10-03
+
+- Completed Member 4 Milestone 1 on `feature/workflow`.
+- Added active workflow-node traversal in `WorkflowGraph` with glowing active borders, badges, and animated smoothstep edges.
+- Synchronized active graph nodes with `AgentTimeline` execution pipeline across 3 scenarios: Executive Escalation (> PKR 100k), Manager Sign-Off (PKR 65k), and Fast-Track (< PKR 5k).
+- Implemented robust Reset functionality halting in-flight timers, clearing active/traversed node highlights, and resetting timeline steps to waiting.
+- Enhanced simulated webhook failure with error messaging confirming core compliance decision and approval draft remain intact.
+- Created `WorkflowPlayground` with dynamic workflow switcher supporting 3 distinct graph topologies (Standard T&E 8-node DAG, Fast-Track 4-node linear, Procurement 6-node multi-approval) and interactive node inspector.
+- Extracted pure layout calculation into `components/workflow/layout.ts` handling branching, single nodes, disconnected graphs, and cyclic fallbacks.
+- Enhanced `lib/automation/webhook.ts` with 5s timeout protection (`AbortSignal.timeout`) and detailed HTTP status reporting.
+- Expanded `tests/e2e/workflow.test.ts` verifying graph structure, reachability, dynamic layout calculations, and webhook reliability (unconfigured, 200, 500, network error, timeout).
+- Ran and passed `npm run lint` (0 errors, 0 warnings), `npm run typecheck`, `npm run test:workflow`, `npm test`, `npm run build`, and browser HTTP QA (200 OK on `/workflows`).
+### Workflow Traversal Review — 2026-10-03
+- Added scenario-based mock node/edge highlighting.
+- Corrected finance approval wording and removed claims of real delivery.
+- Synthetic graphs are labelled layout demos; expense simulation is disabled on them.
+- Workflow switching remounts the timeline to cancel its previous run.
+- Reviewed layout fallback and optional webhook timeout/error handling.
+- npm test and production build passed, including TypeScript validation.
+- Mock webhook checks cover missing configuration, success, HTTP failure,
+  network failure, timeout and invalid timeout.
+- Browser confirmed scenario-dependent highlighting and simulated failure.
+- Latest workflow-switch cancellation and Reset checks remain pending.
+- npm run lint passed; git diff --check found no whitespace errors.
+- No live webhook delivery or complete compliance evaluation claimed.
+
+### Member 4 Takeover Completion — 2026-10-03
+- Branch: `feature/workflow-completion` (branched from `origin/feature/workflow`).
+- Single execution controller `WorkflowExecutionDemo` now coordinates both `WorkflowGraph` and `AgentTimeline`.
+- `WorkflowGraph` refactored as a pure presentational component with `activeNodeId`, `completedNodeIds`, and `activeEdgeIds` props.
+- Dynamic graph path discovery algorithm implemented in `components/workflow/execution.ts` supporting any workflow topology (Cases A-D).
+- Mid-run Reset and workflow switching verified: in-flight timers halted, states reset to waiting, active/completed nodes cleared.
+- Webhook failure simulation verified: leaves core Policy, Evaluation, and Action steps completed; shows explanatory banner.
+- Expanded `tests/e2e/workflow.test.ts` with 5 malformed workflow validation tests and pure execution state logic tests.
+- Verified `npm run lint` (0 errors), `npm run typecheck`, `npm run test:workflow`, `npm test`, `npm run build`, and browser interaction QA.
+
+### Session 16: Workflow UX dev-integration candidate (2026-10-03)
+
+- Created `integration/workflow-dev` from verified `origin/dev` and merged `origin/feature/workflow-completion`; the only merge conflict was the handoff history, which now preserves both backend and workflow records.
+- Preserved every backend route, repository, Supabase module, Member 2 domain module, and shared contract unchanged from `dev`.
+- Verified `WorkflowExecutionDemo`, presentational `WorkflowGraph`, synchronized graph/timeline state, dynamic traversal, mid-run and post-completion reset, optional automation failure isolation, layout helpers, and server-only webhook timeout handling.
+- Full validation passed: 76 platform tests, all rule tests, workflow structure/malformed/layout/execution/webhook tests, 82 full-suite tests, production build, and whitespace checks.
+- Browser QA passed on `/workflows`: readable graph, zoom/pan, synchronized run progression, completed-node state, both reset paths, simulated failure, dynamic workflow switching, and no console, hydration, or error-overlay failures.
+- The page remains honestly labelled as sample/mock execution. Product-level fetching of the real workflow API remains Member 3 integration work; `/api/actions/generate` still returns `webhookTriggered: false`.

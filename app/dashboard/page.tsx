@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FileText, GitFork, CheckCircle, Clock, Home } from "lucide-react";
+import { FileText, GitFork, CheckCircle, Clock, ArrowLeft } from "lucide-react";
 import { useSession } from "@/components/session/SessionProvider";
 
 export default function DashboardPage() {
@@ -18,6 +18,14 @@ export default function DashboardPage() {
       <div className="absolute bottom-[10%] right-[-10%] w-[30%] h-[40%] bg-[#9a75d5]/10 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="max-w-6xl mx-auto space-y-10 relative z-10 w-full flex-1">
+        <Link
+          href="/"
+          className="group inline-flex items-center gap-2 text-sm text-[#4bbabc]/70 hover:text-[#4bbabc] transition-colors bg-[#0d1b2a]/40 px-4 py-2 rounded-full border border-[#2b5a6c]/30 hover:border-[#4bbabc]/50"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> 
+          <span className="font-medium tracking-wide">Home</span>
+        </Link>
+
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#2b5a6c]/30 pb-6">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
@@ -28,12 +36,6 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="px-6 py-2.5 bg-[#0d1b2a]/60 hover:bg-[#122336] text-white rounded-xl text-sm font-bold border border-[#2b5a6c]/50 transition-all hover:border-[#4bbabc]/50 flex items-center gap-2"
-            >
-              <Home className="w-4 h-4" /> Home
-            </Link>
             <Link
               href="/policies/upload"
               className="px-6 py-2.5 bg-gradient-to-r from-[#4bbabc] to-[#9a75d5] hover:opacity-90 text-white rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(154,117,213,0.2)] transition-all"

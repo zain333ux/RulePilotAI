@@ -1,4 +1,4 @@
-# RulePilot AI agent handoff
+﻿# RulePilot AI agent handoff
 
 Read immediately after the PRD, then complete the playbook/development rules/member progress checklist before coding. Root AGENTS.md points here.
 
@@ -8,7 +8,7 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 - Phase: final backend, AI-hardening, and workflow baseline candidate assembled; promotion to `dev` is waiting on the strict live smoke gate.
 - Current branch: `integration/final-baseline`, created from `origin/dev` at `65fcc500a16c47f0123e55b7134aaf67e51e0e35`, with Member 2 hardening commit `4941563c6a67b60e8c2a8c7af27d17857b120eb3` cherry-picked and `origin/integration/workflow-dev` merged. `dev` and `main` remain unchanged.
 - Working architecture: one root Next.js 16.3.8 application. All six routes use server-side Storage/repositories and Member 2 domain exports. AI extraction rejects duplicate IDs and unsupported fields; strict demo validation remains separate from generic extraction. The workflow surface accepts `WorkflowDefinition` and runs a clearly labelled mock execution simulation through a central controller.
-- Completed by area: **Backend — COMPLETE and previously live verified. AI/RAG — implementation and hardening COMPLETE; strict re-smoke currently provider-blocked. Workflow UX — COMPLETE and browser verified.**
+- Completed by area: **Backend â€” COMPLETE and previously live verified. AI/RAG â€” implementation and hardening COMPLETE; strict re-smoke currently provider-blocked. Workflow UX â€” COMPLETE and browser verified.**
 - Unfinished: Member 3 product-level frontend integration with real API responses, final visual polish, full browser E2E, deployment readiness, and optional webhook dispatch from the action route.
 - Known blockers: strict final-policy re-smoke reached live Gemini extraction three times but the provider returned HTTP 503 high demand each time. PDF extraction, 24 chunks, and the live 768-dimensional embedding passed. Do not promote this candidate to `dev` until the strict smoke completes. Seven duplicate document records remain untouched; no cleanup is authorized.
 - Known limitations: webhook dispatch remains disabled and `webhookTriggered` is always false. Case creation and result insertion are separate repository operations, so a result-insert failure can leave a persisted case without a result; the route returns 500 and logs the case ID. Use static expected result fixtures for mock UI until branches are integrated.
@@ -37,12 +37,12 @@ Member 3 should call these real routes and surface their structured failures ins
 
 ## 2. Chronological Session Log
 
-### Session 1 — Initial Setup & Foundation
+### Session 1 â€” Initial Setup & Foundation
 - **Date:** 2026-10-02
 - **Agent:** Initial Setup Engineer
 - **Summary:** Bootstrapped Next.js root app, contracts, mocks, docs, partial engine, API skeletons (then claiming success), migration, starter UI.
 
-### Session 2 — Shared Foundation Review & Hardening
+### Session 2 â€” Shared Foundation Review & Hardening
 - **Date:** 2026-10-02
 - **Agent:** Initial Setup Engineer (continuation)
 - **Summary:**
@@ -56,13 +56,13 @@ Member 3 should call these real routes and surface their structured failures ins
   - Corrected Member 4 ownership (`mocks/` shared); foundation tests expect 501
   - Validated install/lint/typecheck/tests/build; committed and pushed to GitHub
 
-### Session 3 — ADR-008 Hotel Field Consensus
+### Session 3 â€” ADR-008 Hotel Field Consensus
 - **Date:** 2026-10-02
 - **Agent:** Initial Setup Engineer
 - **Summary:**
   - Froze additive ExpenseCase fields: `hotelNightlyRate?: number`, `hotelNights?: number`
   - EXP-004 evaluation: `hotelNightlyRate > 25000` (do not derive from amount/nights)
-  - Updated `mocks/policy-rules.json` EXP-004 `field` → `hotelNightlyRate`
+  - Updated `mocks/policy-rules.json` EXP-004 `field` â†’ `hotelNightlyRate`
   - Documented in ADR-003 / ADR-008; cleared hotel blocker in handoff
 
 
@@ -133,7 +133,7 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Case execution validates inputs, loads workflow-linked persisted rules, reuses Member 2's six-rule evaluator, and persists the case and saved result.
 - Action generation loads the stored case/result and reuses Member 2's deterministic generator. Webhook delivery remains disabled.
 - Added 22 mocked route-boundary tests; typecheck, lint, 48 platform tests, 54 full-suite tests, and production build passed.
-### Session 6: Member 2 — End-to-End AI/RAG/Rule Engine Implementation (2026-10-03)
+### Session 6: Member 2 â€” End-to-End AI/RAG/Rule Engine Implementation (2026-10-03)
 - **Branch:** `feature/ai-engine`
 - **Agent:** Member 2 (AI / RAG / Deterministic Rule Engine)
 - **Summary:**
@@ -172,7 +172,7 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Confirmed all six routes remain real, shared contracts are unchanged, tracked files contain no configured secret values, and `.env.local` remains ignored.
 - Added concise Member 3 and Member 4 consumption guidance. Full credential-independent validation and production build passed; no live data was changed.
 
-### Member 4 Workflow Update — 2026-10-03
+### Member 4 Workflow Update â€” 2026-10-03
 
 - Implemented locally on feature/workflow; not yet merged into dev.
 - Connected WorkflowGraph to /workflows using existing mock data.
@@ -184,7 +184,7 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Shared contracts, fixtures and API behavior unchanged.
 - Next: verify browser interactions, then add an AgentTimeline
   mock preview for waiting, running, completed and failed states.
-  ### Member 4 Timeline Preview — 2026-10-03
+  ### Member 4 Timeline Preview â€” 2026-10-03
 
 - Added labelled mock timeline preview on /workflows.
 - All four states confirmed in browser.
@@ -192,14 +192,14 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - No live processing or webhook dispatch added.
 - Next: lint verification, then controlled mock timeline simulation.
 
-### Member 4 Mock Simulation — 2026-10-03
+### Member 4 Mock Simulation â€” 2026-10-03
 
 - Added controlled mock timeline with run/reset/failure controls.
 - Browser confirmed success and optional automation failure paths.
 - Production build passed; lint/tests and mid-run Reset verification pending.
 - No live processing or webhook requests added.
 
-### Member 4 Synchronized Traversal & Dynamic Workflow QA — 2026-10-03
+### Member 4 Synchronized Traversal & Dynamic Workflow QA â€” 2026-10-03
 
 - Completed Member 4 Milestone 1 on `feature/workflow`.
 - Added active workflow-node traversal in `WorkflowGraph` with glowing active borders, badges, and animated smoothstep edges.
@@ -211,7 +211,7 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Enhanced `lib/automation/webhook.ts` with 5s timeout protection (`AbortSignal.timeout`) and detailed HTTP status reporting.
 - Expanded `tests/e2e/workflow.test.ts` verifying graph structure, reachability, dynamic layout calculations, and webhook reliability (unconfigured, 200, 500, network error, timeout).
 - Ran and passed `npm run lint` (0 errors, 0 warnings), `npm run typecheck`, `npm run test:workflow`, `npm test`, `npm run build`, and browser HTTP QA (200 OK on `/workflows`).
-### Workflow Traversal Review — 2026-10-03
+### Workflow Traversal Review â€” 2026-10-03
 - Added scenario-based mock node/edge highlighting.
 - Corrected finance approval wording and removed claims of real delivery.
 - Synthetic graphs are labelled layout demos; expense simulation is disabled on them.
@@ -225,7 +225,7 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - npm run lint passed; git diff --check found no whitespace errors.
 - No live webhook delivery or complete compliance evaluation claimed.
 
-### Member 4 Takeover Completion — 2026-10-03
+### Member 4 Takeover Completion â€” 2026-10-03
 - Branch: `feature/workflow-completion` (branched from `origin/feature/workflow`).
 - Single execution controller `WorkflowExecutionDemo` now coordinates both `WorkflowGraph` and `AgentTimeline`.
 - `WorkflowGraph` refactored as a pure presentational component with `activeNodeId`, `completedNodeIds`, and `activeEdgeIds` props.
@@ -253,17 +253,17 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Typecheck, lint, 76 platform tests, hardened rule tests, workflow tests, 82 full-suite tests, production build, whitespace checks, browser workflow QA, and secret scans passed.
 - Strict live smoke read the final 8-page PDF, generated 24 page-aware chunks, and produced a 768-dimensional live embedding. Three extraction attempts failed closed at Gemini with HTTP 503 high demand, so `dev` was not updated.
 
- # # #   S e s s i o n   1 8 :   M e m b e r   3   F r o n t e n d   I n t e g r a t i o n   &   P o l i s h   ( 2 0 2 6 - 1 0 - 0 3 ) 
- 
- -   B r a n c h :   \  e a t u r e / f r o n t e n d - f i n a l \   ( b r a n c h e d   f r o m   \ o r i g i n / i n t e g r a t i o n / f i n a l - b a s e l i n e \ ) . 
- -   I n t e g r a t e d   t h e   f r o n t e n d   f u l l y   w i t h   t h e   b a c k e n d   A P I ,   r e p l a c i n g   a l l   m o c k   l o g i c   w i t h   r e a l   c a l l s   t o   t h e   6   c o r e   A P I   r o u t e s   v i a   a   t y p e d   w r a p p e r   ( \ l i b / c l i e n t / r u l e p i l o t - a p i . t s \ ) . 
- -   A d d e d   a   r o b u s t   \ S e s s i o n P r o v i d e r \   s t o r i n g   t h e   s t a t e   ( d o c u m e n t I d ,   r u l e s ,   w o r k f l o w )   a c r o s s   v i e w s ,   r e s o l v i n g   s t a t e   d r o p s   a c r o s s   r o u t e   n a v i g a t i o n s . 
- -   I m p l e m e n t e d   a   u n i f i e d   e r r o r   h a n d l e r   ( \ l i b / c l i e n t / e r r o r . t s \ )   f o r   s t r u c t u r e d   A P I   r e s p o n s e   e r r o r s   t o   e n s u r e   e l e g a n t   f a i l u r e   v i s u a l i z a t i o n . 
- -   F i n i s h e d   v i s u a l   m i g r a t i o n ,   a p p l y i n g   a   p r e m i u m   B 2 B   S a a S   c y b e r   a e s t h e t i c   a c r o s s   t h e   D a s h b o a r d ,   u p l o a d   p i p e l i n e ,   p o l i c y   i n t e l l i g e n c e   v i e w s ,   a n d   w o r k f l o w   d e m o   p l a y g r o u n d . 
- -   C o n n e c t e d   \ C a s e F o r m . t s x \   ( 1 2   f i e l d s ,   i n c l u s i v e   o f   A D R - 0 0 8   h o t e l   c o n d i t i o n s )   t o   \  p i . c a s e s . e x e c u t e \ ,   r e n d e r i n g   d e t e r m i n i s t i c   c o m p l i a n c e   c h e c k s   a n d   g r o u n d e d   c i t a t i o n s . 
- -   R a n   a n d   p a s s e d   \ 
- p m   r u n   l i n t \   ( 0   e r r o r s ) ,   \ 
- p m   r u n   t y p e c h e c k \ ,   a n d   \ 
- p m   r u n   b u i l d \ .   
- -   F r o n t e n d   i s   n o w   f u l l y   p r o d u c t i o n - r e a d y   a n d   f u l l y   i n t e g r a t e d   a g a i n s t   t h e   d e t e r m i n i s t i c   A I   e n g i n e ,   p r e p a r e d   f o r   E 2 E   t e s t i n g .  
- 
+### Session 18: Member 3 Frontend Integration & Polish (2026-10-03)
+
+- Branch: \eature/frontend-final\ (branched from \origin/integration/final-baseline\).
+- Integrated the frontend fully with the backend API, replacing all mock logic with real calls to the 6 core API routes via a typed wrapper (\lib/client/rulepilot-api.ts\).
+- Added a robust \SessionProvider\ storing the state (documentId, rules, workflow) across views, resolving state drops across route navigations.
+- Implemented a unified error handler (\lib/client/error.ts\) for structured API response errors to ensure elegant failure visualization.
+- Finished visual migration, applying a premium B2B SaaS cyber aesthetic across the Dashboard, upload pipeline, policy intelligence views, and workflow demo playground.
+- Connected \CaseForm.tsx\ (12 fields, inclusive of ADR-008 hotel conditions) to \pi.cases.execute\, rendering deterministic compliance checks and grounded citations.
+- Ran and passed \
+pm run lint\ (0 errors), \
+pm run typecheck\, and \
+pm run build\. 
+- Frontend is now fully production-ready and fully integrated against the deterministic AI engine, prepared for E2E testing.
+

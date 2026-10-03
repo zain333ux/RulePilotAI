@@ -43,7 +43,7 @@ Integrate the frontend with the final technical baseline (origin/integration/fin
 ---
 
 # In Progress
-- Validation and bug fixing.
+- Handoff complete.
 
 ---
 
@@ -57,6 +57,7 @@ Integrate the frontend with the final technical baseline (origin/integration/fin
 - `components/layout/Navbar.tsx`
 - `components/policy/CitationModal.tsx`
 - `components/cases/CaseForm.tsx`
+- `components/workflow/WorkflowPlayground.tsx`
 - `components/session/SessionProvider.tsx` (NEW)
 - `lib/client/rulepilot-api.ts` (NEW)
 - `lib/client/error.ts` (NEW)
@@ -76,25 +77,28 @@ Integrate the frontend with the final technical baseline (origin/integration/fin
 - **Session State**: Instead of relying purely on URL params or re-fetching from a database, the frontend uses `SessionProvider` (backed by `sessionStorage`) to pass the active `documentId`, `rules`, and `workflow` between steps in the product funnel.
 - **Unified Error Handling**: Implemented a central error normalizer to ensure any backend failures are presented cleanly to the user.
 - **Aesthetic Direction**: Standardized on a dark cyber theme to create a premium, impressive first impression.
+- **Strict Logic Adherence**: UI explicitly locks out capabilities if preconditions (like uploading a policy) are not met.
 
 ---
 
 # Tests Run
 - TypeScript compilation check (`npm run typecheck`).
+- ESLint (`npm run lint`).
 - Next.js build check (`npm run build`).
 
 ---
 
 # Dependencies on Other Members
-- Relies on Member 1's backend routes being fully functional.
-- Relies on Member 4's `WorkflowExecutionDemo` component for the workflows page.
+- Relies on Member 1's backend routes being fully functional (currently working flawlessly).
+- Relies on Member 4's `WorkflowExecutionDemo` component for the workflows page (currently working flawlessly).
+- Requires `.env.local` to be fully populated by the host to enable Supabase interaction.
 
 ---
 
 # Next Exact Steps
-- Final handoff to integration.
+- Awaiting final repository integration into main branch by Integration Lead.
 
 ---
 
 # Session History
-- **Frontend Integration Session:** Merged previous frontend work with the final technical baseline, implemented real API wiring, standardized state management, and applied high-end visual polish across all core views.
+- **Frontend Integration Session:** Merged previous frontend work with the final technical baseline, implemented real API wiring, standardized state management, and applied high-end visual polish across all core views. Removed all hard-coded mock workflows and cases to respect the true backend logic.

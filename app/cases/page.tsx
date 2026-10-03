@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, AlertCircle, XCircle, ShieldAlert, FileText, ArrowRight, Activity } from "lucide-react";
 import { CaseForm } from "@/components/cases/CaseForm";
 import { ExpenseCase, CaseResult } from "@/types/contracts";
 import { api } from "@/lib/client/rulepilot-api";
@@ -27,8 +27,9 @@ export default function CasesPage() {
     try {
       const evaluationResult = await api.cases.execute(session.documentId, formData);
       setResult(evaluationResult.caseResult);
-    } catch (err: any) {
-      setError(err.message || "Failed to evaluate case");
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Failed to evaluate case");
     } finally {
       setIsEvaluating(false);
     }
@@ -50,15 +51,41 @@ export default function CasesPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "APPROVED":
-        return <CheckCircle2 className="w-5 h-5 text-emerald-400" />;
+        return <CheckCircle2 className="w-8 h-8 text-emerald-400" />;
       case "ACTION_REQUIRED":
-        return <AlertCircle className="w-5 h-5 text-amber-400" />;
+        return <AlertCircle className="w-8 h-8 text-amber-400" />;
       case "REJECTED":
-        return <XCircle className="w-5 h-5 text-rose-400" />;
+        return <XCircle className="w-8 h-8 text-rose-400" />;
       default:
         return null;
     }
   };
+
+  // If no policy is loaded, show a strict empty state
+  if (!session.documentId) {
+    return (
+      <div className="min-h-screen bg-[#0a0f18] text-slate-200 p-8 flex items-center justify-center relative overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#4bbabc]/10 blur-[150px] rounded-full pointer-events-none" />
+        <div className="z-10 rounded-3xl border border-dashed border-[#2b5a6c]/40 bg-[#0d1b2a]/40 backdrop-blur-sm p-12 max-w-2xl w-full flex flex-col items-center justify-center text-center shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+          <div className="w-20 h-20 rounded-3xl bg-[#0a0f18] border border-[#2b5a6c]/50 flex items-center justify-center shadow-[0_0_15px_rgba(43,90,108,0.3)] mb-6">
+            <ShieldAlert className="w-10 h-10 text-slate-500" />
+          </div>
+          <h2 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 mb-4">
+            Policy Required
+          </h2>
+          <p className="text-slate-400 max-w-lg mb-8 text-lg">
+            You cannot evaluate a business case without an active policy. Please upload a policy document to extract the deterministic rules.
+          </p>
+          <Link
+            href="/policies/upload"
+            className="px-8 py-4 bg-gradient-to-r from-[#4bbabc] to-[#9a75d5] hover:opacity-90 text-white rounded-xl text-base font-bold shadow-[0_0_20px_rgba(154,117,213,0.2)] transition-all flex items-center gap-2 group"
+          >
+            <FileText className="w-5 h-5" /> Upload Policy <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0f18] text-slate-200 p-8 relative overflow-hidden flex flex-col">
@@ -80,70 +107,83 @@ export default function CasesPage() {
             Execute Business Case
           </h1>
           <p className="text-sm text-slate-400 max-w-xl leading-relaxed mt-2">
-            Submit expense claims to be evaluated deterministically against your active policy rules.
+            Submit expense claims to be evaluated deterministically against the extracted rules of <strong>{session.documentName}</strong>.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          <div>
+          <div className="order-2 lg:order-1">
             <CaseForm onSubmit={handleEvaluate} isLoading={isEvaluating} />
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6 order-1 lg:order-2">
             {error && (
-              <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 text-sm flex items-start gap-3">
+              <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 text-rose-400 text-sm flex items-start gap-3 shadow-lg">
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                <p>{error}</p>
+                <p className="font-medium">{error}</p>
               </div>
             )}
 
             {!result && !error && (
-              <div className="h-full min-h-[300px] border border-[#2b5a6c]/30 border-dashed rounded-3xl flex flex-col items-center justify-center p-8 text-center bg-[#0d1b2a]/20 backdrop-blur-sm">
-                <div className="w-16 h-16 rounded-full bg-[#122336] flex items-center justify-center mb-4 border border-[#2b5a6c]/30 shadow-inner">
-                  <CheckCircle2 className="w-8 h-8 text-slate-500" />
+              <div className="h-full min-h-[400px] border border-[#2b5a6c]/30 border-dashed rounded-3xl flex flex-col items-center justify-center p-8 text-center bg-[#0d1b2a]/20 backdrop-blur-sm">
+                <div className="w-20 h-20 rounded-full bg-[#122336]/50 flex items-center justify-center mb-6 border border-[#2b5a6c]/30 shadow-inner relative">
+                  {isEvaluating ? (
+                    <>
+                       <div className="absolute inset-0 border-4 border-[#4bbabc] rounded-full border-t-transparent animate-spin" />
+                       <Activity className="w-8 h-8 text-[#4bbabc] animate-pulse" />
+                    </>
+                  ) : (
+                    <CheckCircle2 className="w-10 h-10 text-slate-600" />
+                  )}
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">Awaiting Evaluation</h3>
-                <p className="text-sm text-slate-400 max-w-sm">
-                  Fill out the form and submit a case to see the deterministic engine's decision based on the extracted rules.
+                <h3 className="text-xl font-bold text-white mb-3">
+                  {isEvaluating ? "Analyzing Data..." : "Awaiting Evaluation"}
+                </h3>
+                <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
+                  {isEvaluating 
+                    ? "The deterministic engine is currently parsing your input against the loaded policy rules." 
+                    : "Fill out the form and submit a case to see the deterministic engine's decision based on the extracted rules."}
                 </p>
               </div>
             )}
 
             {result && (
-              <div className="p-8 rounded-3xl border border-[#2b5a6c]/30 bg-[#0d1b2a]/40 backdrop-blur-md shadow-[0_0_30px_rgba(43,90,108,0.1)] space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex items-start justify-between border-b border-[#2b5a6c]/30 pb-4">
-                  <div className="space-y-1">
-                    <h3 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
-                      Evaluation Result
-                    </h3>
-                    <p className="text-xs text-slate-400">Processed by RulePilot Engine</p>
+              <div className="p-8 rounded-3xl border border-[#2b5a6c]/30 bg-[#0d1b2a]/60 backdrop-blur-md shadow-[0_0_40px_rgba(43,90,108,0.2)] space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <div className="flex flex-col items-center justify-center text-center pb-6 border-b border-[#2b5a6c]/30">
+                  <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${getStatusColor(result.status)} shadow-lg`}>
+                     {getStatusIcon(result.status)}
                   </div>
-                  <span className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-bold tracking-wider ${getStatusColor(result.status)}`}>
-                    {getStatusIcon(result.status)}
+                  <h3 className="text-2xl font-black text-white tracking-wider mb-2">
                     {result.status.replace("_", " ")}
-                  </span>
+                  </h3>
+                  <p className="text-sm text-slate-400">Processed deterministically by RulePilot Engine</p>
                 </div>
 
-                {result.violations.length > 0 && (
+                {result.violations.length > 0 ? (
                   <div className="space-y-4">
-                    <h4 className="text-sm font-semibold text-rose-400 uppercase tracking-widest">Violations</h4>
-                    <div className="space-y-3">
+                     <div className="flex items-center gap-2 text-rose-400 mb-4">
+                       <AlertCircle className="w-5 h-5" />
+                       <h4 className="font-bold uppercase tracking-widest text-sm">Violations Found</h4>
+                     </div>
+                    <div className="space-y-4">
                       {result.violations.map((violation, idx) => (
-                        <div key={idx} className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm">
-                          <p className="font-semibold mb-1">{violation.ruleId}</p>
-                          <p>{violation.message}</p>
+                        <div key={idx} className="p-5 rounded-2xl bg-rose-500/5 border border-rose-500/20 shadow-inner group hover:border-rose-500/40 transition-colors">
+                          <div className="flex items-center justify-between mb-3">
+                             <span className="font-mono text-xs font-bold bg-rose-500/20 text-rose-300 px-3 py-1 rounded-md border border-rose-500/30">
+                               {violation.ruleId}
+                             </span>
+                             <span className="text-xs text-rose-500 font-bold uppercase tracking-wider">Failed</span>
+                          </div>
+                          <p className="text-sm text-rose-200 leading-relaxed">{violation.message}</p>
                         </div>
                       ))}
                     </div>
                   </div>
-                )}
-
-
-
-                {result.status === "APPROVED" && result.violations.length === 0 && (
-                  <div className="p-6 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-center flex flex-col items-center gap-3">
-                    <CheckCircle2 className="w-10 h-10 text-emerald-400" />
-                    <p className="font-bold">All compliance checks passed.</p>
+                ) : (
+                  <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 text-center space-y-3">
+                    <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
+                    <p className="font-bold text-emerald-300 text-lg">All Checks Passed</p>
+                    <p className="text-sm text-emerald-500/80">The submitted case fully complies with the active policy rules.</p>
                   </div>
                 )}
               </div>

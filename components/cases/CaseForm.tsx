@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ExpenseCase } from "@/types/contracts";
+import { Activity } from "lucide-react";
 
 interface CaseFormProps {
   onSubmit?: (expenseCase: ExpenseCase) => void;
@@ -40,12 +41,11 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
       <div className="absolute inset-0 bg-gradient-to-br from-[#4bbabc]/5 via-transparent to-[#9a75d5]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
       <div>
-        <h3 className="text-xl font-extrabold text-white tracking-wide">Expense Claim Input</h3>
-        <p className="text-xs text-amber-400/90 bg-amber-950/20 p-3 rounded-xl border border-amber-900/30 mt-3 leading-relaxed">
-          Sample fixture defaults — evaluation wiring owned by Member 3 + Member 2. Hotel inputs
-          (ADR-008): optional <code className="text-slate-300 font-mono bg-black/30 px-1 py-0.5 rounded">hotelNightlyRate</code> /{" "}
-          <code className="text-slate-300 font-mono bg-black/30 px-1 py-0.5 rounded">hotelNights</code>; rule is{" "}
-          <code className="text-slate-300 font-mono bg-black/30 px-1 py-0.5 rounded">hotelNightlyRate &gt; 25000</code>.
+        <h3 className="text-xl font-extrabold text-white tracking-wide flex items-center gap-2">
+          <Activity className="w-5 h-5 text-[#4bbabc]" /> Expense Claim Input
+        </h3>
+        <p className="text-sm text-slate-400 mt-2 leading-relaxed">
+          Fill out the details of the business case. The engine will evaluate this data deterministically against the extracted rules.
         </p>
       </div>
 
@@ -128,7 +128,8 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
           <input
             id="hotelNightlyRate"
             type="number"
-            className="w-full bg-[#0a0f18]/80 border border-[#2b5a6c]/50 rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:border-[#4bbabc] focus:shadow-[0_0_15px_rgba(75,186,188,0.2)] transition-all placeholder-slate-500"
+            className="w-full bg-[#0a0f18]/80 border border-[#2b5a6c]/50 rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:border-[#4bbabc] focus:shadow-[0_0_15px_rgba(75,186,188,0.2)] transition-all placeholder-slate-600"
+            placeholder="e.g. 25000"
             value={formData.hotelNightlyRate || ""}
             onChange={(e) => setFormData({ ...formData, hotelNightlyRate: e.target.value ? Number(e.target.value) : undefined })}
           />
@@ -141,7 +142,8 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
           <input
             id="hotelNights"
             type="number"
-            className="w-full bg-[#0a0f18]/80 border border-[#2b5a6c]/50 rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:border-[#4bbabc] focus:shadow-[0_0_15px_rgba(75,186,188,0.2)] transition-all placeholder-slate-500"
+            className="w-full bg-[#0a0f18]/80 border border-[#2b5a6c]/50 rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:border-[#4bbabc] focus:shadow-[0_0_15px_rgba(75,186,188,0.2)] transition-all placeholder-slate-600"
+            placeholder="e.g. 3"
             value={formData.hotelNights || ""}
             onChange={(e) => setFormData({ ...formData, hotelNights: e.target.value ? Number(e.target.value) : undefined })}
           />
@@ -212,11 +214,9 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
           className="group/btn relative w-full flex justify-center items-center gap-2 px-8 py-4 rounded-xl mt-6 bg-gradient-to-r from-[#4bbabc] to-[#9a75d5] text-white text-base font-bold tracking-wide shadow-[0_0_20px_rgba(154,117,213,0.3)] hover:shadow-[0_0_35px_rgba(154,117,213,0.6)] transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <div className="absolute inset-0 bg-white/20 -translate-x-[120%] group-hover/btn:translate-x-[120%] transition-transform duration-700 ease-in-out skew-x-12" />
-          <span className="relative z-10">
-            {!onSubmit
-              ? "Evaluate unavailable — wire Member 2 engine / API"
-              : isLoading
-                ? "Evaluating Case..."
+          <span className="relative z-10 flex items-center gap-2">
+            {isLoading
+                ? "Evaluating Deterministically..."
                 : "Submit for Rule Evaluation"}
           </span>
         </button>

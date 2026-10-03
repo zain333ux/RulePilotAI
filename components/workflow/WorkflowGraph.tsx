@@ -23,6 +23,7 @@ import type {
 export interface WorkflowGraphProps {
   workflow: WorkflowDefinition;
   activeNodeId?: string | null;
+  completedNodeIds?: string[];
   traversedNodeIds?: string[];
   activeEdgeIds?: string[];
   onNodeClick?: (nodeId: string) => void;
@@ -34,6 +35,7 @@ type PolicyNode = Node<
     label: string;
     kind: WorkflowNodeType;
     isActive?: boolean;
+    isCompleted?: boolean;
     isTraversed?: boolean;
   },
   "policy"
@@ -82,11 +84,13 @@ function WorkflowNode({ data, selected }: NodeProps<PolicyNode>) {
   const Icon = design.icon;
 
   const isActive = Boolean(data.isActive);
-  const isTraversed = Boolean(data.isTraversed && !isActive);
+  const isCompleted = Boolean(
+    (data.isCompleted ?? data.isTraversed) && !isActive,
+  );
 
   const borderColor = isActive
     ? "#818cf8"
-    : isTraversed
+    : isCompleted
       ? "#10b981"
       : selected
         ? "#ffffff"
@@ -94,7 +98,7 @@ function WorkflowNode({ data, selected }: NodeProps<PolicyNode>) {
 
   const boxShadow = isActive
     ? "0 0 0 3px rgba(129, 140, 248, 0.45), 0 0 24px rgba(99, 102, 241, 0.6)"
-    : isTraversed
+    : isCompleted
       ? "0 0 0 2px rgba(16, 185, 129, 0.35), 0 0 12px rgba(16, 185, 129, 0.25)"
       : selected
         ? `0 0 0 4px ${design.border}40`
@@ -129,7 +133,7 @@ function WorkflowNode({ data, selected }: NodeProps<PolicyNode>) {
             ACTIVE
           </span>
         )}
-        {isTraversed && (
+        {isCompleted && (
           <span className="flex items-center gap-0.5 rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300 ring-1 ring-emerald-500/40">
             DONE
           </span>
@@ -162,14 +166,20 @@ export { createLayout };
 export function WorkflowGraph({
   workflow,
   activeNodeId,
+  completedNodeIds,
   traversedNodeIds,
   activeEdgeIds,
   onNodeClick,
   className = "h-[600px] w-full",
 }: WorkflowGraphProps) {
+  const resolvedCompletedIds = useMemo(
+    () => completedNodeIds ?? traversedNodeIds ?? [],
+    [completedNodeIds, traversedNodeIds],
+  );
+
   const nodes = useMemo(
-    () => createLayout(workflow, activeNodeId, traversedNodeIds),
-    [workflow, activeNodeId, traversedNodeIds],
+    () => createLayout(workflow, activeNodeId, resolvedCompletedIds),
+    [workflow, activeNodeId, resolvedCompletedIds],
   );
 
   const edges: Edge[] = useMemo(() => {

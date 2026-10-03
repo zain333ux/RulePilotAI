@@ -121,3 +121,13 @@ User authorized sharing the baseline. Fetched GitHub: main was 88bdbd5, with no 
 - Latest workflow-switch cancellation and Reset checks remain pending.
 - npm run lint passed; git diff --check found no whitespace errors.
 - No live webhook delivery or complete compliance evaluation claimed.
+
+### Member 4 Takeover Completion — 2026-10-03
+- Branch: `feature/workflow-completion` (branched from `origin/feature/workflow`).
+- Single execution controller `WorkflowExecutionDemo` now coordinates both `WorkflowGraph` and `AgentTimeline`.
+- `WorkflowGraph` refactored as a pure presentational component with `activeNodeId`, `completedNodeIds`, and `activeEdgeIds` props.
+- Dynamic graph path discovery algorithm implemented in `components/workflow/execution.ts` supporting any workflow topology (Cases A-D).
+- Mid-run Reset and workflow switching verified: in-flight timers halted, states reset to waiting, active/completed nodes cleared.
+- Webhook failure simulation verified: leaves core Policy, Evaluation, and Action steps completed; shows explanatory banner.
+- Expanded `tests/e2e/workflow.test.ts` with 5 malformed workflow validation tests and pure execution state logic tests.
+- Verified `npm run lint` (0 errors), `npm run typecheck`, `npm run test:workflow`, `npm test`, `npm run build`, and browser interaction QA.

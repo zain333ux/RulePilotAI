@@ -7,6 +7,7 @@ export interface PolicyNodeData extends Record<string, unknown> {
   label: string;
   kind: WorkflowNodeType;
   isActive?: boolean;
+  isCompleted?: boolean;
   isTraversed?: boolean;
 }
 
@@ -27,7 +28,7 @@ export interface CalculatedNode {
 export function createLayout(
   workflow: WorkflowDefinition,
   activeNodeId?: string | null,
-  traversedNodeIds?: string[],
+  completedOrTraversedNodeIds?: string[],
 ): CalculatedNode[] {
   if (
     !workflow ||
@@ -104,12 +105,13 @@ export function createLayout(
     rows.set(level, row);
   }
 
-  const traversedSet = new Set(traversedNodeIds ?? []);
+  const completedSet = new Set(completedOrTraversedNodeIds ?? []);
 
   return workflow.nodes.map((node) => {
     const level = levels.get(node.id)!;
     const row = rows.get(level)!;
     const column = row.indexOf(node.id);
+    const isCompleted = completedSet.has(node.id);
 
     return {
       id: node.id,
@@ -118,7 +120,8 @@ export function createLayout(
         label: node.label,
         kind: node.type,
         isActive: node.id === activeNodeId,
-        isTraversed: traversedSet.has(node.id),
+        isCompleted,
+        isTraversed: isCompleted,
       },
       position: {
         x: (column - (row.length - 1) / 2) * 340,

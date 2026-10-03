@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { PolicyRule, WorkflowDefinition, CaseResult } from "@/types/contracts";
 
 interface RulePilotSession {
@@ -29,12 +30,14 @@ const STORAGE_KEY = "rulepilot_session";
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<RulePilotSession>({});
   const [isLoaded, setIsLoaded] = useState(false);
+  const router = useRouter();
 
   // Load from sessionStorage on mount
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
+        // eslint-disable-next-line
         setSession(JSON.parse(stored));
       }
     } catch (err) {
@@ -62,7 +65,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setSession({});
     sessionStorage.removeItem(STORAGE_KEY);
     // Force redirect to upload or dashboard
-    window.location.href = "/policies/upload";
+    router.push("/policies/upload");
   };
 
   return (

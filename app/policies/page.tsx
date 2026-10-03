@@ -1,14 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, FileText, Database, GitMerge, FileSearch, Terminal, Download, Copy } from "lucide-react";
+import { ArrowLeft, FileText, Database, GitMerge, FileSearch, Terminal, Copy, Check } from "lucide-react";
 import { useSession } from "@/components/session/SessionProvider";
+
+import { PolicyRule } from "@/types/contracts";
 
 export default function PoliciesPage() {
   const { session } = useSession();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   
   const rules = session.rules || [];
   const documentName = session.documentName || "Unknown Document";
+
+  const handleCopyLogic = (rule: PolicyRule) => {
+    const logicString = `if (${rule.field} ${rule.operator} ${rule.value}) { action = '${rule.action}' }`;
+    navigator.clipboard.writeText(logicString).then(() => {
+      setCopiedId(rule.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0f18] text-slate-200 p-8 relative overflow-hidden flex flex-col">
@@ -120,8 +132,8 @@ export default function PoliciesPage() {
                      <div className="bg-[#050a10] rounded-lg p-3 text-xs font-mono border border-[#2b5a6c]/30 shadow-inner relative z-10">
                        <div className="flex items-center justify-between mb-2">
                          <span className="text-slate-500 uppercase tracking-widest text-[9px] font-sans font-bold">Logic</span>
-                         <button className="text-slate-500 hover:text-white transition-colors" title="Copy Logic">
-                           <Copy className="w-3 h-3" />
+                         <button onClick={() => handleCopyLogic(rule)} className={`${copiedId === rule.id ? 'text-emerald-400' : 'text-slate-500 hover:text-white'} transition-colors flex items-center gap-1`} title="Copy Logic">
+                           {copiedId === rule.id ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                          </button>
                        </div>
                        <span className="text-[#9a75d5]">if</span> (
@@ -129,7 +141,7 @@ export default function PoliciesPage() {
                        <span className="text-pink-400 mx-2">{rule.operator}</span> 
                        <span className="text-[#e5a962]">{rule.value.toString()}</span>) 
                        <br/>
-                       <span className="ml-4 text-slate-400">→</span> <span className="text-[#4bbabc]">action</span>: <span className="text-emerald-300">'{rule.action}'</span>
+                       <span className="ml-4 text-slate-400">→</span> <span className="text-[#4bbabc]">action</span>: <span className="text-emerald-300">&apos;{rule.action}&apos;</span>
                      </div>
                   </div>
                 ))}

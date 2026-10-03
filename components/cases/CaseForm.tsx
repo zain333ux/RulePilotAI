@@ -2,28 +2,45 @@
 
 import { useState } from "react";
 import { ExpenseCase } from "@/types/contracts";
-import { Activity } from "lucide-react";
+import { Activity, Wand2 } from "lucide-react";
 
 interface CaseFormProps {
   onSubmit?: (expenseCase: ExpenseCase) => void;
   isLoading?: boolean;
 }
 
+const emptyCase: ExpenseCase = {
+  employeeName: "",
+  category: "",
+  amount: 0,
+  receipt: false,
+  managerApproval: false,
+  financeApproval: false,
+  internationalTravel: false,
+  preApproval: false,
+  expenseDate: new Date().toISOString().split("T")[0],
+  submissionDate: new Date().toISOString().split("T")[0],
+  hotelNightlyRate: undefined,
+  hotelNights: undefined,
+};
+
+const demoCase: ExpenseCase = {
+  employeeName: "Sarah Khan",
+  category: "Client Entertainment",
+  amount: 68000,
+  receipt: true,
+  managerApproval: true,
+  financeApproval: false,
+  internationalTravel: false,
+  preApproval: false,
+  expenseDate: "2026-09-28",
+  submissionDate: "2026-10-02",
+  hotelNightlyRate: undefined,
+  hotelNights: undefined,
+};
+
 export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
-  const [formData, setFormData] = useState<ExpenseCase>({
-    employeeName: "Sarah Khan",
-    category: "Client Entertainment",
-    amount: 68000,
-    receipt: true,
-    managerApproval: true,
-    financeApproval: false,
-    internationalTravel: false,
-    preApproval: false,
-    expenseDate: "2026-09-28",
-    submissionDate: "2026-10-02",
-    hotelNightlyRate: undefined,
-    hotelNights: undefined,
-  });
+  const [formData, setFormData] = useState<ExpenseCase>(emptyCase);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +48,8 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
       onSubmit(formData);
     }
   };
+
+  const showHotelFields = formData.category.toLowerCase().includes('hotel') || formData.category.toLowerCase().includes('travel') || formData.category.toLowerCase().includes('lodging');
 
   return (
     <form
@@ -40,13 +59,22 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
       {/* Animated subtle inner glow */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#4bbabc]/5 via-transparent to-[#9a75d5]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-      <div>
-        <h3 className="text-xl font-extrabold text-white tracking-wide flex items-center gap-2">
-          <Activity className="w-5 h-5 text-[#4bbabc]" /> Expense Claim Input
-        </h3>
-        <p className="text-sm text-slate-400 mt-2 leading-relaxed">
-          Fill out the details of the business case. The engine will evaluate this data deterministically against the extracted rules.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="text-xl font-extrabold text-white tracking-wide flex items-center gap-2">
+            <Activity className="w-5 h-5 text-[#4bbabc]" /> Expense Claim Input
+          </h3>
+          <p className="text-sm text-slate-400 mt-2 leading-relaxed">
+            Fill out the details of the business case. The engine will evaluate this data against the extracted rules.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setFormData(demoCase)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-lg transition-colors"
+        >
+          <Wand2 className="w-3 h-3" /> Load Demo
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
@@ -61,6 +89,7 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
             value={formData.employeeName}
             onChange={(e) => setFormData({ ...formData, employeeName: e.target.value })}
             required
+            placeholder="e.g. Sarah Khan"
           />
         </div>
 
@@ -75,6 +104,7 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
             value={formData.category}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             required
+            placeholder="e.g. Travel, Hotel, Meals"
           />
         </div>
 
@@ -86,7 +116,7 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
             id="amount"
             type="number"
             className="w-full bg-[#0a0f18]/80 border border-[#2b5a6c]/50 rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:border-[#4bbabc] focus:shadow-[0_0_15px_rgba(75,186,188,0.2)] transition-all placeholder-slate-500"
-            value={formData.amount}
+            value={formData.amount || ""}
             onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
             required
           />
@@ -121,33 +151,37 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
           </div>
         </div>
 
-        <div>
-          <label htmlFor="hotelNightlyRate" className="block text-xs font-semibold text-[#4bbabc] mb-2 uppercase tracking-wider">
-            Hotel Nightly Rate (Optional)
-          </label>
-          <input
-            id="hotelNightlyRate"
-            type="number"
-            className="w-full bg-[#0a0f18]/80 border border-[#2b5a6c]/50 rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:border-[#4bbabc] focus:shadow-[0_0_15px_rgba(75,186,188,0.2)] transition-all placeholder-slate-600"
-            placeholder="e.g. 25000"
-            value={formData.hotelNightlyRate || ""}
-            onChange={(e) => setFormData({ ...formData, hotelNightlyRate: e.target.value ? Number(e.target.value) : undefined })}
-          />
-        </div>
+        {showHotelFields && (
+          <>
+            <div className="animate-in fade-in duration-300">
+              <label htmlFor="hotelNightlyRate" className="block text-xs font-semibold text-[#4bbabc] mb-2 uppercase tracking-wider">
+                Hotel Nightly Rate
+              </label>
+              <input
+                id="hotelNightlyRate"
+                type="number"
+                className="w-full bg-[#0a0f18]/80 border border-[#2b5a6c]/50 rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:border-[#4bbabc] focus:shadow-[0_0_15px_rgba(75,186,188,0.2)] transition-all placeholder-slate-600"
+                placeholder="e.g. 25000"
+                value={formData.hotelNightlyRate || ""}
+                onChange={(e) => setFormData({ ...formData, hotelNightlyRate: e.target.value ? Number(e.target.value) : undefined })}
+              />
+            </div>
 
-        <div>
-          <label htmlFor="hotelNights" className="block text-xs font-semibold text-[#4bbabc] mb-2 uppercase tracking-wider">
-            Hotel Nights (Optional)
-          </label>
-          <input
-            id="hotelNights"
-            type="number"
-            className="w-full bg-[#0a0f18]/80 border border-[#2b5a6c]/50 rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:border-[#4bbabc] focus:shadow-[0_0_15px_rgba(75,186,188,0.2)] transition-all placeholder-slate-600"
-            placeholder="e.g. 3"
-            value={formData.hotelNights || ""}
-            onChange={(e) => setFormData({ ...formData, hotelNights: e.target.value ? Number(e.target.value) : undefined })}
-          />
-        </div>
+            <div className="animate-in fade-in duration-300">
+              <label htmlFor="hotelNights" className="block text-xs font-semibold text-[#4bbabc] mb-2 uppercase tracking-wider">
+                Hotel Nights
+              </label>
+              <input
+                id="hotelNights"
+                type="number"
+                className="w-full bg-[#0a0f18]/80 border border-[#2b5a6c]/50 rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:border-[#4bbabc] focus:shadow-[0_0_15px_rgba(75,186,188,0.2)] transition-all placeholder-slate-600"
+                placeholder="e.g. 3"
+                value={formData.hotelNights || ""}
+                onChange={(e) => setFormData({ ...formData, hotelNights: e.target.value ? Number(e.target.value) : undefined })}
+              />
+            </div>
+          </>
+        )}
 
         <div className="col-span-full pt-4 grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
           <label htmlFor="receipt" className="inline-flex items-center gap-3 text-sm font-medium text-slate-300 cursor-pointer hover:text-white transition-colors">
@@ -216,7 +250,7 @@ export function CaseForm({ onSubmit, isLoading = false }: CaseFormProps) {
           <div className="absolute inset-0 bg-white/20 -translate-x-[120%] group-hover/btn:translate-x-[120%] transition-transform duration-700 ease-in-out skew-x-12" />
           <span className="relative z-10 flex items-center gap-2">
             {isLoading
-                ? "Evaluating Deterministically..."
+                ? "Evaluating Case..."
                 : "Submit for Rule Evaluation"}
           </span>
         </button>

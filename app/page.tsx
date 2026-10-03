@@ -179,9 +179,9 @@ export default function HomePage() {
                  </div>
                </div>
             </div>
-            <h3 className="text-[17px] font-bold text-white mb-3 tracking-wide">Deterministic Decision Engine</h3>
+            <h3 className="text-[17px] font-bold text-white mb-3 tracking-wide">Policy-Driven Decision Engine</h3>
             <p className="text-[15px] text-[#8e98ac] leading-[1.6]">
-              Deploy auditable decision-making pipelines that guarantee consistent compliance and eliminate generative unpredictability.
+              Deploy auditable decision-making pipelines that guarantee consistent compliance and reliable outcomes based directly on your rules.
             </p>
           </div>
 

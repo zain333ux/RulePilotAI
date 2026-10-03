@@ -57,7 +57,7 @@ export default function DashboardPage() {
               Enterprise Compliance Dashboard
             </h1>
             <p className="text-sm text-slate-400 mt-2">
-              Mission Control for active policies, extracted rules, and execution outcomes.
+              Central hub for active policies, extracted rules, and execution outcomes.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -93,7 +93,7 @@ export default function DashboardPage() {
               <CheckCircle className="w-5 h-5 text-emerald-400" />
             </div>
             <div className="mt-4 text-4xl font-extrabold text-white">{extractedRules}</div>
-            <div className="mt-2 text-xs text-slate-500 font-medium">Deterministic constraints</div>
+            <div className="mt-2 text-xs text-slate-500 font-medium">Policy-driven constraints</div>
           </div>
 
           <div className="p-6 rounded-2xl border border-[#2b5a6c]/30 bg-[#0d1b2a]/40 backdrop-blur-md shadow-[0_0_20px_rgba(43,90,108,0.1)]">
@@ -178,7 +178,7 @@ export default function DashboardPage() {
                 <div className="h-[200px] flex flex-col items-center justify-center text-center border border-dashed border-[#2b5a6c]/30 rounded-2xl bg-[#0a0f18]/30">
                   <FileText className="w-8 h-8 text-slate-600 mb-3" />
                   <p className="text-sm text-slate-400 font-medium">No rules available.</p>
-                  <p className="text-xs text-slate-500 mt-1 max-w-[250px]">Upload a policy document to extract deterministic rules.</p>
+                  <p className="text-xs text-slate-500 mt-1 max-w-[250px]">Upload a policy document to extract policy rules.</p>
                 </div>
               )}
             </div>

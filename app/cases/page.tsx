@@ -2,36 +2,85 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, AlertCircle, XCircle, ShieldAlert, FileText, ArrowRight, Activity } from "lucide-react";
+import { ArrowLeft, CheckCircle2, AlertCircle, XCircle, ShieldAlert, FileText, ArrowRight, Activity, Zap } from "lucide-react";
 import { CaseForm } from "@/components/cases/CaseForm";
-import { ExpenseCase, CaseResult } from "@/types/contracts";
+import { ExpenseCase, CaseResult, Citation } from "@/types/contracts";
 import { api } from "@/lib/client/rulepilot-api";
 import { useSession } from "@/components/session/SessionProvider";
+import { CitationModal } from "@/components/policy/CitationModal";
+import { normalizeApiError } from "@/lib/client/error";
 
 export default function CasesPage() {
-  const { session } = useSession();
+  const { session, updateSession } = useSession();
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [result, setResult] = useState<CaseResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Next Action state
+  const [isGeneratingAction, setIsGeneratingAction] = useState(false);
+  const [actionResult, setActionResult] = useState<{ action: string; template: string } | null>(null);
+
+  // Citation Modal state
+  const [citationModalOpen, setCitationModalOpen] = useState(false);
+  const [selectedCitation, setSelectedCitation] = useState<Citation | null>(null);
+
   const handleEvaluate = async (formData: ExpenseCase) => {
-    if (!session.documentId) {
-      setError("No active policy found. Please upload a policy first.");
+    if (!session.workflowId) {
+      setError("No active decision workflow found. Please upload a policy first to generate the workflow.");
       return;
     }
 
     setIsEvaluating(true);
     setError(null);
     setResult(null);
+    setActionResult(null);
 
     try {
-      const evaluationResult = await api.cases.execute(session.documentId, formData);
+      const evaluationResult = await api.cases.execute(session.workflowId, formData);
       setResult(evaluationResult.caseResult);
+      
+      // Update session with latest results for Dashboard
+      updateSession({
+        latestCaseId: evaluationResult.caseId,
+        latestCaseResult: evaluationResult.caseResult
+      });
     } catch (err: unknown) {
-      const error = err as Error;
-      setError(error.message || "Failed to evaluate case");
+      setError(normalizeApiError(err, "Failed to evaluate case"));
     } finally {
       setIsEvaluating(false);
+    }
+  };
+
+  const handleGenerateAction = async () => {
+    if (!session.latestCaseId) return;
+    
+    setIsGeneratingAction(true);
+    setError(null);
+    
+    try {
+      const res = await api.actions.generate(session.latestCaseId);
+      setActionResult({
+        action: res.action,
+        template: res.template
+      });
+      // Save action to session
+      updateSession({
+        latestAction: res.action,
+        latestTemplate: res.template
+      });
+    } catch (err: unknown) {
+      setError(normalizeApiError(err, "Failed to generate next action."));
+    } finally {
+      setIsGeneratingAction(false);
+    }
+  };
+
+  const handleOpenCitation = (ruleId: string) => {
+    if (!session.rules) return;
+    const rule = session.rules.find((r) => r.id === ruleId);
+    if (rule && rule.citation) {
+      setSelectedCitation(rule.citation);
+      setCitationModalOpen(true);
     }
   };
 
@@ -61,8 +110,8 @@ export default function CasesPage() {
     }
   };
 
-  // If no policy is loaded, show a strict empty state
-  if (!session.documentId) {
+  // If no workflow is loaded, show empty state
+  if (!session.workflowId) {
     return (
       <div className="min-h-screen bg-[#0a0f18] text-slate-200 p-8 flex items-center justify-center relative overflow-hidden">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#4bbabc]/10 blur-[150px] rounded-full pointer-events-none" />
@@ -74,7 +123,7 @@ export default function CasesPage() {
             Policy Required
           </h2>
           <p className="text-slate-400 max-w-lg mb-8 text-lg">
-            You cannot evaluate a business case without an active policy. Please upload a policy document to extract the deterministic rules.
+            You cannot evaluate a business case without an active policy. Please upload a policy document to map the rules.
           </p>
           <Link
             href="/policies/upload"
@@ -104,10 +153,10 @@ export default function CasesPage() {
 
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-            Execute Business Case
+            Evaluate a Case
           </h1>
           <p className="text-sm text-slate-400 max-w-xl leading-relaxed mt-2">
-            Submit expense claims to be evaluated deterministically against the extracted rules of <strong>{session.documentName}</strong>.
+            Submit expense claims to be evaluated against the rules mapped from <strong>{session.documentName}</strong>.
           </p>
         </div>
 
@@ -141,8 +190,8 @@ export default function CasesPage() {
                 </h3>
                 <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
                   {isEvaluating 
-                    ? "The deterministic engine is currently parsing your input against the loaded policy rules." 
-                    : "Fill out the form and submit a case to see the deterministic engine's decision based on the extracted rules."}
+                    ? "The engine is currently parsing your input against the loaded policy rules." 
+                    : "Fill out the form and submit a case to see the engine's decision based on the extracted rules."}
                 </p>
               </div>
             )}
@@ -156,7 +205,7 @@ export default function CasesPage() {
                   <h3 className="text-2xl font-black text-white tracking-wider mb-2">
                     {result.status.replace("_", " ")}
                   </h3>
-                  <p className="text-sm text-slate-400">Processed deterministically by RulePilot Engine</p>
+                  <p className="text-sm text-slate-400">Processed by RulePilot</p>
                 </div>
 
                 {result.violations.length > 0 ? (
@@ -169,14 +218,54 @@ export default function CasesPage() {
                       {result.violations.map((violation, idx) => (
                         <div key={idx} className="p-5 rounded-2xl bg-rose-500/5 border border-rose-500/20 shadow-inner group hover:border-rose-500/40 transition-colors">
                           <div className="flex items-center justify-between mb-3">
-                             <span className="font-mono text-xs font-bold bg-rose-500/20 text-rose-300 px-3 py-1 rounded-md border border-rose-500/30">
+                             <button 
+                               onClick={() => handleOpenCitation(violation.ruleId)}
+                               className="font-mono text-xs font-bold bg-rose-500/20 text-rose-300 hover:text-white hover:bg-rose-500/40 px-3 py-1 rounded-md border border-rose-500/30 transition-colors cursor-pointer flex items-center gap-1"
+                             >
                                {violation.ruleId}
-                             </span>
+                               <FileText className="w-3 h-3 ml-1" />
+                             </button>
                              <span className="text-xs text-rose-500 font-bold uppercase tracking-wider">Failed</span>
                           </div>
                           <p className="text-sm text-rose-200 leading-relaxed">{violation.message}</p>
                         </div>
                       ))}
+                    </div>
+
+                    {/* Next Action Generation for violations */}
+                    <div className="pt-6 border-t border-[#2b5a6c]/30 mt-6">
+                      {!actionResult ? (
+                        <button
+                          onClick={handleGenerateAction}
+                          disabled={isGeneratingAction}
+                          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 rounded-xl font-bold transition-all disabled:opacity-50"
+                        >
+                          {isGeneratingAction ? (
+                            <>
+                              <Activity className="w-4 h-4 animate-spin" /> Generating Recommended Action...
+                            </>
+                          ) : (
+                            <>
+                              <Zap className="w-4 h-4" /> Generate Recommended Next Action
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <div className="space-y-4 animate-in fade-in duration-500">
+                          <div className="flex items-center gap-2 text-indigo-400 mb-2">
+                            <Zap className="w-5 h-5" />
+                            <h4 className="font-bold uppercase tracking-widest text-sm">Recommended Next Action</h4>
+                          </div>
+                          <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                            <p className="text-sm font-semibold text-indigo-200">{actionResult.action}</p>
+                          </div>
+                          {actionResult.template && (
+                            <div className="p-4 rounded-xl bg-[#050a10] border border-[#2b5a6c]/30">
+                              <p className="text-xs font-mono text-slate-300 whitespace-pre-wrap">{actionResult.template}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -191,6 +280,13 @@ export default function CasesPage() {
           </div>
         </div>
       </div>
+      
+      <CitationModal 
+        isOpen={citationModalOpen} 
+        onClose={() => setCitationModalOpen(false)} 
+        citation={selectedCitation}
+        documentName={session.documentName}
+      />
     </div>
   );
 }

@@ -3,14 +3,13 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { UploadCloud, ArrowLeft, CheckCircle2, Loader2, Sparkles, FileText, Settings, Key, GitMerge } from "lucide-react";
+import { UploadCloud, CheckCircle2, Loader2, Sparkles, FileText, Key, GitMerge } from "lucide-react";
 import { useSession } from "@/components/session/SessionProvider";
 import { uploadDocument, processDocument, extractRules, generateWorkflow } from "@/lib/client/rulepilot-api";
 import { normalizeApiError } from "@/lib/client/error";
 
 export default function PolicyUploadPage() {
-  const router = useRouter();
-  const { updateSession } = useSession();
+  const { session, updateSession } = useSession();
   
   const [isDragging, setIsDragging] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -36,6 +35,50 @@ export default function PolicyUploadPage() {
     setIsDragging(false);
   };
 
+  const executePipeline = async (startStep: number, file?: File) => {
+    setError(null);
+    setCurrentStep(startStep);
+
+    let docId = session.documentId;
+
+    try {
+      if (startStep === 1) {
+        if (!file) throw new Error("File required for step 1");
+        // Step 1: Upload
+        const uploadRes = await uploadDocument(file);
+        docId = uploadRes.documentId;
+        updateSession({ documentId: docId, documentName: file.name });
+      }
+      
+      if (!docId) throw new Error("Missing document ID");
+
+      if (startStep <= 2) {
+        setCurrentStep(2);
+        // Step 2: Process Document
+        await processDocument(docId);
+      }
+      
+      if (startStep <= 3) {
+        setCurrentStep(3);
+        // Step 3: Extract Rules
+        const extractRes = await extractRules(docId);
+        updateSession({ rules: extractRes.rules });
+      }
+      
+      if (startStep <= 4) {
+        setCurrentStep(4);
+        // Step 4: Generate Workflow
+        const workflowRes = await generateWorkflow(docId);
+        updateSession({ workflowId: workflowRes.workflowId, workflow: workflowRes.workflow });
+      }
+      
+      // Done!
+      setCurrentStep(5);
+    } catch (err: unknown) {
+      setError(normalizeApiError(err));
+    }
+  };
+
   const processFilePipeline = async (file: File) => {
     if (file.type !== "application/pdf") {
       setError("Please upload a PDF file.");
@@ -47,40 +90,22 @@ export default function PolicyUploadPage() {
       setError("Maximum file size is 4 MiB.");
       return;
     }
+
+    // Clear stale session state before starting a fresh upload
+    updateSession({
+      documentId: undefined,
+      documentName: undefined,
+      rules: undefined,
+      workflowId: undefined,
+      workflow: undefined,
+      latestCaseId: undefined,
+      latestCaseResult: undefined,
+      latestAction: undefined,
+      latestTemplate: undefined,
+    });
     
     setFileName(file.name);
-    setError(null);
-    setCurrentStep(1);
-    
-    try {
-      // Step 1: Upload
-      const uploadRes = await uploadDocument(file);
-      const documentId = uploadRes.documentId;
-      
-      updateSession({ documentId, documentName: file.name });
-      
-      setCurrentStep(2);
-      
-      // Step 2: Process Document
-      await processDocument(documentId);
-      
-      setCurrentStep(3);
-      
-      // Step 3: Extract Rules
-      const extractRes = await extractRules(documentId);
-      updateSession({ rules: extractRes.rules });
-      
-      setCurrentStep(4);
-      
-      // Step 4: Generate Workflow
-      const workflowRes = await generateWorkflow(documentId);
-      updateSession({ workflowId: workflowRes.workflowId, workflow: workflowRes.workflow });
-      
-      // Done!
-      setCurrentStep(5);
-    } catch (err: any) {
-      setError(normalizeApiError(err));
-    }
+    await executePipeline(1, file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -99,10 +124,12 @@ export default function PolicyUploadPage() {
   };
 
   const handleRetry = () => {
-    setError(null);
-    if (currentStep > 0 && currentStep < 5) {
-      // If we failed mid-pipeline, for this demo we'll let them upload again.
-      // Alternatively, we could attempt to retry the specific step, but a full reset is safer here.
+    if (currentStep > 1 && currentStep < 5 && session.documentId) {
+      // Retry from the failed step if we already have a documentId
+      executePipeline(currentStep);
+    } else {
+      // Otherwise full reset
+      setError(null);
       setCurrentStep(0);
       setFileName(null);
     }
@@ -172,7 +199,6 @@ export default function PolicyUploadPage() {
                 {steps.map((step) => {
                   const isActive = currentStep === step.id;
                   const isCompleted = currentStep > step.id;
-                  const isPending = currentStep < step.id;
                   const hasError = isActive && error;
                   const Icon = step.icon;
                   

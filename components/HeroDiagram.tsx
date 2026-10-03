@@ -1,5 +1,4 @@
 import React from "react";
-import { BrainCircuit } from "lucide-react";
 
 const BezierCurve = ({ 
   x1, y1, x2, y2, color, strokeWidth = 1.5, glow = false 

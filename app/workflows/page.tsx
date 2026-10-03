@@ -28,7 +28,7 @@ export default function WorkflowsPage() {
             </h1>
           </div>
           <p className="text-sm text-slate-400 max-w-xl leading-relaxed mt-2">
-            Visual rule hierarchy rendered dynamically, synchronized with agent execution state.
+            Visual rule hierarchy rendered dynamically, mapped from your active policy.
           </p>
         </div>
 

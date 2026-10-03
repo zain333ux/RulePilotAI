@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+
 import Link from "next/link";
 import { UploadCloud, CheckCircle2, Loader2, Sparkles, FileText, Key, GitMerge } from "lucide-react";
 import { useSession } from "@/components/session/SessionProvider";

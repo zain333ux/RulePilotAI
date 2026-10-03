@@ -26,6 +26,10 @@ export default function CasesPage() {
   const [citationModalOpen, setCitationModalOpen] = useState(false);
   const [selectedCitation, setSelectedCitation] = useState<Citation | null>(null);
 
+  // Copy Feedback state
+  const [copyActionState, setCopyActionState] = useState<'idle' | 'copied' | 'error'>('idle');
+  const [copyTemplateState, setCopyTemplateState] = useState<'idle' | 'copied' | 'error'>('idle');
+
 
 
   const handleEvaluate = async (formData: ExpenseCase) => {
@@ -79,15 +83,27 @@ export default function CasesPage() {
     }
   };
 
-  const handleCopyAction = () => {
+  const handleCopyAction = async () => {
     if (actionResult?.action) {
-      navigator.clipboard.writeText(actionResult.action);
+      try {
+        await navigator.clipboard.writeText(actionResult.action);
+        setCopyActionState('copied');
+      } catch {
+        setCopyActionState('error');
+      }
+      setTimeout(() => setCopyActionState('idle'), 2000);
     }
   };
 
-  const handleCopyTemplate = () => {
+  const handleCopyTemplate = async () => {
     if (actionResult?.template) {
-      navigator.clipboard.writeText(actionResult.template);
+      try {
+        await navigator.clipboard.writeText(actionResult.template);
+        setCopyTemplateState('copied');
+      } catch {
+        setCopyTemplateState('error');
+      }
+      setTimeout(() => setCopyTemplateState('idle'), 2000);
     }
   };
 
@@ -300,7 +316,7 @@ export default function CasesPage() {
                           <h4 className="font-bold uppercase tracking-widest text-sm">Recommended Next Action</h4>
                         </div>
                         <button onClick={handleCopyAction} className="text-xs text-indigo-300 hover:text-white bg-indigo-500/20 px-3 py-1 rounded border border-indigo-500/30 transition-colors">
-                          Copy Action
+                          {copyActionState === 'copied' ? "Copied" : copyActionState === 'error' ? "Could not copy. Please select the text manually." : "Copy Action"}
                         </button>
                       </div>
                       <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
@@ -312,7 +328,7 @@ export default function CasesPage() {
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="font-bold uppercase tracking-widest text-sm text-slate-400">Suggested Message</h4>
                             <button onClick={handleCopyTemplate} className="text-xs text-slate-300 hover:text-white bg-[#0d1b2a] px-3 py-1 rounded border border-[#2b5a6c]/30 transition-colors">
-                              Copy Message
+                              {copyTemplateState === 'copied' ? "Copied" : copyTemplateState === 'error' ? "Could not copy. Please select the text manually." : "Copy Message"}
                             </button>
                           </div>
                           <div className="p-4 rounded-xl bg-[#050a10] border border-[#2b5a6c]/30">

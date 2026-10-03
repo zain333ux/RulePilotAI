@@ -135,7 +135,7 @@ export function WorkflowExecutionDemo({
               >
                 <span>{p.name}</span>
                 <span className="ml-1.5 rounded bg-black/40 px-1 py-0.5 text-[10px] font-mono">
-                  {p.steps.length} Nodes
+                  {p.steps.length} Steps
                 </span>
               </button>
             ))}
@@ -162,7 +162,7 @@ export function WorkflowExecutionDemo({
             className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800/80 px-4 py-2 text-sm font-medium text-zinc-200 transition-colors hover:bg-zinc-700"
           >
             <RotateCcw className="h-4 w-4" />
-            <span>Reset Graph & Pipeline</span>
+            <span>Reset Simulation</span>
           </button>
 
           <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-xs text-zinc-300">
@@ -287,16 +287,15 @@ export function WorkflowExecutionDemo({
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 text-xs text-zinc-300">
           <div className="flex items-center gap-2 font-semibold text-white">
             <ShieldAlert className="h-4 w-4 text-indigo-400" />
-            <span>Execution Summary — Mock Preview</span>
+            <span>Execution Summary</span>
             <span className="rounded bg-zinc-800 px-2 py-0.5 font-mono text-[10px] text-amber-400">
-              Demo Fixture
+              Simulation
             </span>
           </div>
           <p className="mt-1 text-zinc-400">
-            Traversed {executionState.completedNodeIds.length} workflow nodes
+            Traversed {executionState.completedNodeIds.length} workflow steps
             across policy extraction and rule evaluation. In live execution,
-            backend evaluation verifies citations and computes policy
-            compliance deterministically.
+            RulePilot evaluates citations and ensures policy compliance.
           </p>
         </div>
       )}

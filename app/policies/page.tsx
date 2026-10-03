@@ -55,7 +55,7 @@ export default function PoliciesPage() {
           <div className="flex items-center gap-3">
              <Link href="/workflows" className="flex items-center gap-2 px-4 py-2 bg-[#0d1b2a]/60 border border-[#2b5a6c]/40 rounded-xl hover:border-[#4bbabc]/50 hover:bg-[#112538] transition-colors text-xs font-bold text-[#4bbabc] uppercase tracking-wider">
                <GitMerge className="w-3.5 h-3.5" />
-               View Workflow Map
+               View Decision Workflow
              </Link>
           </div>
         </div>
@@ -86,9 +86,7 @@ export default function PoliciesPage() {
                          <FileText className="w-6 h-6 text-[#4bbabc]" />
                        </div>
                      </div>
-                     <h2 className="text-lg font-bold text-white mb-1 truncate" title={documentName}>{documentName}</h2>
-                     <p className="text-sm text-[#4bbabc] font-mono mb-4 truncate">ID: {session.documentId}</p>
-                     
+                     <h2 className="text-lg font-bold text-white mb-4 truncate" title={documentName}>{documentName}</h2>
                      <div className="space-y-3">
                        <div className="flex justify-between items-center text-sm border-b border-[#2b5a6c]/20 pb-2">
                          <span className="text-slate-400">Extracted Rules</span>
@@ -125,23 +123,29 @@ export default function PoliciesPage() {
                      </div>
                      
                      <h4 className="text-[15px] font-bold text-white mb-2 relative z-10 leading-snug group-hover:text-[#4bbabc] transition-colors">{rule.name}</h4>
-                     <p className="text-xs text-slate-400 mb-5 relative z-10 line-clamp-3 leading-relaxed flex-1">
-                       &quot;{rule.citation?.text}&quot;
-                     </p>
-                     
-                     <div className="bg-[#050a10] rounded-lg p-3 text-xs font-mono border border-[#2b5a6c]/30 shadow-inner relative z-10">
-                       <div className="flex items-center justify-between mb-2">
-                         <span className="text-slate-500 uppercase tracking-widest text-[9px] font-sans font-bold">Logic</span>
-                         <button onClick={() => handleCopyLogic(rule)} className={`${copiedId === rule.id ? 'text-emerald-400' : 'text-slate-500 hover:text-white'} transition-colors flex items-center gap-1`} title="Copy Logic">
-                           {copiedId === rule.id ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                         </button>
+                     <div className="flex-1 space-y-4">
+                       <div>
+                         <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Condition</p>
+                         <p className="text-sm text-slate-300 bg-[#0d1b2a] p-2 rounded-lg border border-[#2b5a6c]/30 shadow-inner">
+                           Applies when <span className="text-[#4bbabc] font-medium">{rule.field}</span> is <span className="text-pink-400 font-medium">{rule.operator}</span> <span className="text-[#e5a962] font-medium">{rule.value.toString()}</span>
+                         </p>
                        </div>
-                       <span className="text-[#9a75d5]">if</span> (
-                       <span className="text-[#4bbabc] ml-1">{rule.field}</span> 
-                       <span className="text-pink-400 mx-2">{rule.operator}</span> 
-                       <span className="text-[#e5a962]">{rule.value.toString()}</span>) 
-                       <br/>
-                       <span className="ml-4 text-slate-400">→</span> <span className="text-[#4bbabc]">action</span>: <span className="text-emerald-300">&apos;{rule.action}&apos;</span>
+                       <div>
+                         <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Required Action</p>
+                         <p className="text-sm text-emerald-300 font-medium">{rule.action}</p>
+                       </div>
+                       <div>
+                         <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Policy Evidence</p>
+                         <p className="text-xs text-slate-400 italic bg-[#050a10]/50 p-2 rounded-lg border border-slate-800 line-clamp-2">
+                           &quot;{rule.citation?.text}&quot;
+                         </p>
+                       </div>
+                     </div>
+                     
+                     <div className="mt-4 pt-3 border-t border-[#2b5a6c]/20 flex justify-end">
+                       <button onClick={() => handleCopyLogic(rule)} className={`${copiedId === rule.id ? 'text-emerald-400' : 'text-slate-500 hover:text-white'} transition-colors flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold`} title="Copy Logic">
+                         {copiedId === rule.id ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy Logic</>}
+                       </button>
                      </div>
                   </div>
                 ))}

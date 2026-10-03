@@ -9,6 +9,10 @@ export function Navbar() {
   const pathname = usePathname();
   const { session, startOver } = useSession();
 
+  if (pathname === "/") {
+    return null;
+  }
+
   const links = [
     { name: "Dashboard", href: "/dashboard" },
     { name: "Policies", href: "/policies" },

@@ -145,3 +145,13 @@ This document tracks all foundational architectural, technical, and interface de
 - The repository pins the 768-dimensional storage shape, not a provider model. Member 2 chooses a supported model and verifies output size before embedding real chunks.
 
 Implementation references checked during review: [Next.js server/client boundaries](https://nextjs.org/docs/app/getting-started/server-and-client-components), [Supabase pgvector](https://supabase.com/docs/guides/database/extensions/pgvector), [shadcn manual configuration](https://ui.shadcn.com/docs/installation/manual).
+
+---
+
+## ADR-013: Policy extraction provider recovery
+
+- **Status:** Accepted on 2026-10-04 for demo reliability.
+- **Context:** The production Gemini generation endpoint returned repeated HTTP 503 responses during rule extraction. Upload, PDF processing, embeddings, Supabase persistence, and the remaining API routes were healthy.
+- **Decision:** Retry Gemini rule extraction twice after HTTP 503 with short bounded delays. Do not retry Gemini HTTP 429 responses. When Gemini still returns 503, or returns 429, use Groq only when the server-only `GROQ_API_KEY` is configured. The default Groq model is `openai/gpt-oss-20b` and can be overridden with `GROQ_MODEL`.
+- **Safety:** Groq is an extraction transport fallback only. Its output passes the same `PolicyRule` validation, supported-field and duplicate-ID checks, strict source-page citation grounding, demo semantic validation, and atomic persistence as Gemini output. Groq does not replace the Gemini 768-dimensional embedding path. Provider keys remain server-only.
+- **Consequence:** A temporary Gemini generation outage no longer stops rule extraction when Groq is configured. If neither provider succeeds, the route still fails closed and existing persisted rules remain unchanged.

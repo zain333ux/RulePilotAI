@@ -16,6 +16,13 @@ export class GeminiExtractionError extends Error {
   }
 }
 
+export class GroqExtractionError extends GeminiExtractionError {
+  constructor(message: string, status?: number) {
+    super(message, status);
+    this.name = "GroqExtractionError";
+  }
+}
+
 export class DuplicateRuleIdError extends GeminiExtractionError {
   constructor(message: string) {
     super(message);
@@ -267,7 +274,7 @@ GROUNDING RULES:
 /**
  * Sends prompt payload to Gemini REST API and extracts parsed JSON.
  */
-async function callGeminiExtractRules(promptContent: string): Promise<PolicyRule[]> {
+async function callGeminiExtractRulesOnce(promptContent: string): Promise<PolicyRule[]> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new GeminiNotConfiguredError();
@@ -330,6 +337,137 @@ async function callGeminiExtractRules(promptContent: string): Promise<PolicyRule
   return rules;
 }
 
+const GEMINI_503_RETRY_DELAYS_MS = [500, 1500] as const;
+
+function wait(delayMs: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, delayMs));
+}
+
+function canUseGroqFallback(): boolean {
+  return Boolean(process.env.GROQ_API_KEY?.trim());
+}
+
+async function callGroqExtractRules(promptContent: string): Promise<PolicyRule[]> {
+  const apiKey = process.env.GROQ_API_KEY?.trim();
+  if (!apiKey) {
+    throw new GroqExtractionError("GROQ_API_KEY is not configured for policy extraction fallback.");
+  }
+
+  const model = process.env.GROQ_MODEL?.trim() || "openai/gpt-oss-20b";
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.1,
+      reasoning_effort: "low",
+      messages: [
+        {
+          role: "system",
+          content: `${buildGeminiSystemInstruction()}\nReturn one JSON object with a single \"rules\" property containing the rule array.`,
+        },
+        {
+          role: "user",
+          content: `Extract policy rules from the following text:\n\n${promptContent}`,
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "policy_rules",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: {
+              rules: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    field: { type: "string" },
+                    operator: { type: "string", enum: [">", "<", ">=", "<=", "==", "!="] },
+                    value: { anyOf: [{ type: "string" }, { type: "number" }, { type: "boolean" }] },
+                    action: { type: "string" },
+                    citation: {
+                      type: "object",
+                      properties: {
+                        page: { type: "integer", minimum: 1 },
+                        section: { type: ["string", "null"] },
+                        text: { type: "string" },
+                      },
+                      required: ["page", "section", "text"],
+                      additionalProperties: false,
+                    },
+                  },
+                  required: ["id", "name", "field", "operator", "value", "action", "citation"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["rules"],
+            additionalProperties: false,
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new GroqExtractionError(
+      `Groq policy extraction failed with status ${response.status}.`,
+      response.status
+    );
+  }
+
+  const responseData = await response.json();
+  const rawText = responseData?.choices?.[0]?.message?.content;
+  if (typeof rawText !== "string" || !rawText.trim()) {
+    throw new GroqExtractionError("Groq response contained no policy rule content.");
+  }
+
+  let parsed: unknown;
+  try {
+    const envelope = JSON.parse(rawText) as { rules?: unknown };
+    parsed = envelope.rules;
+  } catch (error) {
+    throw new GroqExtractionError(`Failed to parse Groq policy output as JSON: ${(error as Error).message}`);
+  }
+
+  const rules = validatePolicyRules(parsed);
+  if (rules.length === 0) {
+    throw new GroqExtractionError("No valid PolicyRule objects could be extracted from Groq response.");
+  }
+
+  return rules;
+}
+
+async function callPolicyExtractionProvider(promptContent: string): Promise<PolicyRule[]> {
+  let lastGeminiError: GeminiExtractionError | undefined;
+
+  for (let attempt = 0; attempt <= GEMINI_503_RETRY_DELAYS_MS.length; attempt += 1) {
+    try {
+      return await callGeminiExtractRulesOnce(promptContent);
+    } catch (error) {
+      if (!(error instanceof GeminiExtractionError)) throw error;
+      lastGeminiError = error;
+
+      if (error.status !== 503 || attempt === GEMINI_503_RETRY_DELAYS_MS.length) break;
+      await wait(GEMINI_503_RETRY_DELAYS_MS[attempt]);
+    }
+  }
+
+  if (lastGeminiError && [429, 503].includes(lastGeminiError.status ?? 0) && canUseGroqFallback()) {
+    return callGroqExtractRules(promptContent);
+  }
+
+  throw lastGeminiError ?? new GeminiExtractionError("Policy extraction provider request failed.");
+}
+
 /**
  * Production extraction path using real extracted PDF pages.
  *
@@ -351,7 +489,7 @@ export async function extractPolicyRulesFromPages(
     .map(p => `=== Page ${p.pageNumber} ===\n${p.text}`)
     .join("\n\n");
 
-  const rules = await callGeminiExtractRules(textWithPageMarkers);
+  const rules = await callPolicyExtractionProvider(textWithPageMarkers);
 
   // Strict citation grounding against exact source pages
   const groundedRules = validatePolicyRulesAgainstSource(rules, pages);
@@ -370,5 +508,5 @@ export async function extractPolicyRulesFromText(
     return [];
   }
 
-  return await callGeminiExtractRules(policyText);
+  return await callPolicyExtractionProvider(policyText);
 }

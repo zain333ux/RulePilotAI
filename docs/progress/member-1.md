@@ -138,6 +138,15 @@ Loads the stored case/result, calls `generateNextAction`, and returns `webhookTr
 
 Have the integration lead review `integration/backend-dev` and decide whether to merge it into `dev`.
 
+## Provider Recovery — 2026-10-04
+
+- Production logs showed `POST /api/rules/extract` returning HTTP 503 while the Vercel runtime remained healthy.
+- `lib/ai/gemini.ts` now retries Gemini HTTP 503 twice with bounded delays. It does not retry quota HTTP 429 responses.
+- If Gemini remains unavailable or rate-limited and `GROQ_API_KEY` is configured, extraction shifts to Groq using `GROQ_MODEL` or `openai/gpt-oss-20b`.
+- Both providers feed the same `PolicyRule` validation and exact source citation grounding before atomic persistence. No mock rules or citations are used.
+- Added focused tests for Gemini recovery, persistent-503 Groq fallback, and immediate 429 fallback.
+- Production activation still requires `GROQ_API_KEY` in Vercel Production and a deployment of this patch.
+
 ## Remaining Work
 
 - Review and merge the isolated `integration/backend-dev` candidate into `dev`.

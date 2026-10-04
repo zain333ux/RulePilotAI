@@ -10,10 +10,10 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 - Working architecture: one root Next.js 16.3.8 application. The product frontend calls all six real API routes, keeps the active browser session in `sessionStorage`, renders persisted policy rules and workflows, executes deterministic cases, and generates saved next actions. Server routes retain private Storage, repositories, atomic replacement RPCs, and Member 2 domain exports.
 - Completed by area: **Backend - COMPLETE. AI/RAG - COMPLETE and hardened. Workflow UX - COMPLETE. Product frontend - COMPLETE. Vercel production deployment - COMPLETE and verified.**
 - Unfinished: optional webhook dispatch from the action route and known non-blocking dependency/image optimization advisories.
-- Known blockers: none for the hackathon demo. Gemini can still return transient quota or availability errors; the UI fails closed and supports retry. Seven duplicate document records remain untouched; no cleanup is authorized.
+- Known blockers: production Gemini rule extraction returned repeated HTTP 503 responses during demo rehearsal. The provider recovery patch retries Gemini 503 responses and can fall back to Groq for Gemini 429/503 responses, but production fallback requires a server-only `GROQ_API_KEY` in Vercel. Seven duplicate document records remain untouched; no cleanup is authorized.
 - Known limitations: webhook dispatch remains disabled and `webhookTriggered` is always false. Case creation and result insertion are separate repository operations, so a result-insert failure can leave a persisted case without a result; the route returns 500 and logs the case ID. Use static expected result fixtures for mock UI until branches are integrated.
 - Decisions: LLM interprets policy; deterministic code executes rules. Member 1 owns every route. Workflow/case IDs bind rules and decisions to their documents. Server-only secret modules; private policy storage and server-only DB access baseline. See ADR-010 through ADR-012.
-- Environment: no credentials needed for build/unit tests. Server-only GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY and optional MAKE_WEBHOOK_URL; public NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY. All `.env*` files are ignored except `.env.example`. Supabase credentials are configured locally and the live upload was manually verified; never print or commit them.
+- Environment: no credentials needed for build/unit tests. Server-only GEMINI_API_KEY, optional GROQ_API_KEY/GROQ_MODEL extraction fallback, SUPABASE_SERVICE_ROLE_KEY and optional MAKE_WEBHOOK_URL; public NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY. All `.env*` files are ignored except `.env.example`. Supabase credentials are configured locally and the live upload was manually verified; never print or commit them.
 - Database: live schema, pgvector, service-role access, private Storage, and both atomic RPCs are verified. The final live record has 24 chunks, six rules, one generated workflow, five cases, and five case results with correct relationships.
 - API: all six routes are implemented and verified live in order against the final policy PDF. Provider-dependent routes fail closed with structured errors.
 - Contract status: types/contracts.ts unchanged by this review. Additive types/api.ts formalizes transport envelopes; changes recorded in ADR-010. Mock citations are authored fictional demo references, never live PDF evidence.
@@ -21,7 +21,7 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 - Tests: credential-free tests cover all six routes, repositories, domain rules, fixtures, malformed workflows, layout, dynamic traversal, reset behavior, failure isolation, and webhook reliability.
 - Validation: the strict final-policy smoke passed all 12 checks with 8 pages, 24 chunks, a 768-dimensional embedding, six grounded rules, and a 14-node/19-edge workflow. The deployed browser flow completed upload/process/extract/workflow/case/action generation. Final production API smoke used document `7706bca2-fd11-40a9-8c74-c79d527ab66f`, workflow `7c7d0f59-0058-4220-b2c7-1eff07fdf479`, and approved case `3e48f24e-3f1f-488a-a651-f1ab03d7a98b`.
 - Last verified working commands: `npm run typecheck`; `npm run lint`; `npm run test:platform`; `npm run test:rules`; `npm run test:workflow`; `npm test`; `npm run build`; `git diff --check`.
-- Exact next task: rehearse the hackathon demo using the production application at `https://rulepilot-ai.vercel.app`.
+- Exact next task: configure `GROQ_API_KEY` for Vercel Production, deploy the provider recovery patch, and repeat the final-policy upload through workflow generation.
 - Parallel readiness: `main` is the production baseline; `dev` is aligned for any post-demo fixes.
 
 ### Backend consumption contract
@@ -34,6 +34,13 @@ Read immediately after the PRD, then complete the playbook/development rules/mem
 - `POST /api/actions/generate` returns the deterministic action/template. `webhookTriggered` remains `false` until Member 4's optional automation integration.
 
 Member 3 should call these real routes and surface their structured failures instead of simulating backend success. Member 4 should render the returned `WorkflowDefinition`; the renderer does not need to generate mock workflows internally.
+
+### Session 20: Policy extraction provider recovery (2026-10-04)
+
+- Production logs isolated the demo failure to `POST /api/rules/extract` returning HTTP 503. Vercel showed no runtime crash; upload, processing, and persistence were not the failing layer.
+- Added two bounded Gemini retries for HTTP 503 only. Gemini HTTP 429 falls through immediately instead of consuming more exhausted quota.
+- Added optional Groq rule-extraction fallback for Gemini 429/503 responses using `openai/gpt-oss-20b` by default.
+- Preserved every existing schema, field, duplicate-ID, citation-grounding, semantic, and atomic-persistence gate. Embeddings remain on Gemini at 768 dimensions.
 
 ## 2. Chronological Session Log
 

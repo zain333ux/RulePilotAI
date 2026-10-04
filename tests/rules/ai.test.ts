@@ -191,6 +191,8 @@ export async function runAiModuleVerification() {
   const previousKey = process.env.GEMINI_API_KEY;
   const previousModel = process.env.GEMINI_EMBEDDING_MODEL;
   const previousGenerationModel = process.env.GEMINI_MODEL;
+  const previousGroqKey = process.env.GROQ_API_KEY;
+  const previousGroqModel = process.env.GROQ_MODEL;
   const previousFetch = globalThis.fetch;
   try {
     process.env.GEMINI_API_KEY = "test-key";
@@ -213,6 +215,68 @@ export async function runAiModuleVerification() {
     const generatedRules = await extractPolicyRulesFromText("Supported generation model check");
     assert.equal(generatedRules.length, 1);
     console.log("Test 8 (Supported Default Generation Model): Passed");
+
+    let geminiAttempts = 0;
+    globalThis.fetch = async (input) => {
+      assert.match(String(input), /generativelanguage\.googleapis\.com/);
+      geminiAttempts += 1;
+      if (geminiAttempts < 2) {
+        return new Response("temporarily unavailable", { status: 503 });
+      }
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: JSON.stringify([validRule]) }] } }],
+      });
+    };
+    const retriedRules = await extractPolicyRulesFromText("Retry temporary Gemini outage");
+    assert.equal(retriedRules.length, 1);
+    assert.equal(geminiAttempts, 2);
+    console.log("Test 8a (Gemini 503 Retry): Passed");
+
+    process.env.GROQ_API_KEY = "test-groq-key";
+    delete process.env.GROQ_MODEL;
+    geminiAttempts = 0;
+    let groqAttempts = 0;
+    globalThis.fetch = async (input, init) => {
+      const url = String(input);
+      if (url.includes("generativelanguage.googleapis.com")) {
+        geminiAttempts += 1;
+        return new Response("temporarily unavailable", { status: 503 });
+      }
+
+      assert.match(url, /api\.groq\.com\/openai\/v1\/chat\/completions/);
+      assert.equal(new Headers(init?.headers).get("Authorization"), "Bearer test-groq-key");
+      const body = JSON.parse(String(init?.body)) as { model?: string };
+      assert.equal(body.model, "openai/gpt-oss-20b");
+      groqAttempts += 1;
+      return Response.json({
+        choices: [{ message: { content: JSON.stringify({ rules: [validRule] }) } }],
+      });
+    };
+    const fallbackRules = await extractPolicyRulesFromText("Fallback after Gemini outage");
+    assert.equal(fallbackRules.length, 1);
+    assert.equal(geminiAttempts, 3);
+    assert.equal(groqAttempts, 1);
+    console.log("Test 8b (Groq Fallback After Gemini 503): Passed");
+
+    geminiAttempts = 0;
+    groqAttempts = 0;
+    globalThis.fetch = async (input) => {
+      const url = String(input);
+      if (url.includes("generativelanguage.googleapis.com")) {
+        geminiAttempts += 1;
+        return new Response("quota exhausted", { status: 429 });
+      }
+
+      groqAttempts += 1;
+      return Response.json({
+        choices: [{ message: { content: JSON.stringify({ rules: [validRule] }) } }],
+      });
+    };
+    const quotaFallbackRules = await extractPolicyRulesFromText("Fallback after Gemini quota exhaustion");
+    assert.equal(quotaFallbackRules.length, 1);
+    assert.equal(geminiAttempts, 1, "Gemini quota errors must not be retried blindly");
+    assert.equal(groqAttempts, 1);
+    console.log("Test 8c (Groq Fallback After Gemini 429): Passed");
   } finally {
     globalThis.fetch = previousFetch;
     if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
@@ -221,6 +285,10 @@ export async function runAiModuleVerification() {
     else process.env.GEMINI_EMBEDDING_MODEL = previousModel;
     if (previousGenerationModel === undefined) delete process.env.GEMINI_MODEL;
     else process.env.GEMINI_MODEL = previousGenerationModel;
+    if (previousGroqKey === undefined) delete process.env.GROQ_API_KEY;
+    else process.env.GROQ_API_KEY = previousGroqKey;
+    if (previousGroqModel === undefined) delete process.env.GROQ_MODEL;
+    else process.env.GROQ_MODEL = previousGroqModel;
   }
   // 9. Test Duplicate Rule ID Rejection
   const duplicateIdInput = [
